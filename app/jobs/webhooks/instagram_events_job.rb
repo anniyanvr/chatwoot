@@ -1,32 +1,42 @@
-class Webhooks::InstagramEventsJob < ApplicationJob
+class Webhooks::InstagramEventsJob < MutexApplicationJob
   queue_as :default
+  retry_on LockAcquisitionError, wait: 1.second, attempts: 8
 
   include HTTParty
 
   base_uri 'https://graph.facebook.com/v11.0/me'
 
   # @return [Array] We will support further events like reaction or seen in future
-  SUPPORTED_EVENTS = [:message].freeze
+  SUPPORTED_EVENTS = [:message, :read].freeze
 
-  # @see https://developers.facebook.com/docs/messenger-platform/instagram/features/webhook
   def perform(entries)
     @entries = entries
 
-    if @entries[0].key?(:changes)
-      Rails.logger.info('Probably Test data.')
-      # grab the test entry for the review app
-      create_test_text
-      return
+    key = format(::Redis::Alfred::IG_MESSAGE_MUTEX, sender_id: sender_id, ig_account_id: ig_account_id)
+    with_lock(key) do
+      process_entries(entries)
     end
+  end
 
-    @entries.each do |entry|
-      entry[:messaging].each do |messaging|
+  # @see https://developers.facebook.com/docs/messenger-platform/instagram/features/webhook
+  def process_entries(entries)
+    entries.each do |entry|
+      entry = entry.with_indifferent_access
+      messages(entry).each do |messaging|
         send(@event_name, messaging) if event_name(messaging)
       end
     end
   end
 
   private
+
+  def ig_account_id
+    @entries&.first&.dig(:id)
+  end
+
+  def sender_id
+    @entries&.dig(0, :messaging, 0, :sender, :id)
+  end
 
   def event_name(messaging)
     @event_name ||= SUPPORTED_EVENTS.find { |key| messaging.key?(key) }
@@ -36,51 +46,11 @@ class Webhooks::InstagramEventsJob < ApplicationJob
     ::Instagram::MessageText.new(messaging).perform
   end
 
-  def create_test_text
-    messenger_channel = Channel::FacebookPage.last
-    @inbox = ::Inbox.find_by(channel: messenger_channel)
-    return unless @inbox
-
-    @contact_inbox = @inbox.contact_inboxes.where(source_id: 'sender_username').first
-    unless @contact_inbox
-      @contact_inbox ||= @inbox.channel.create_contact_inbox(
-        'sender_username', 'sender_username'
-      )
-    end
-    @contact = @contact_inbox.contact
-
-    @conversation ||= Conversation.find_by(conversation_params) || build_conversation(conversation_params)
-
-    @message = @conversation.messages.create!(message_params)
+  def read(messaging)
+    ::Instagram::ReadStatusService.new(params: messaging).perform
   end
 
-  def conversation_params
-    {
-      account_id: @inbox.account_id,
-      inbox_id: @inbox.id,
-      contact_id: @contact.id,
-      additional_attributes: {
-        type: 'instagram_direct_message'
-      }
-    }
-  end
-
-  def message_params
-    {
-      account_id: @conversation.account_id,
-      inbox_id: @conversation.inbox_id,
-      message_type: 'incoming',
-      source_id: 'facebook_test_webhooks',
-      content: 'This is a test message from facebook.',
-      sender: @contact
-    }
-  end
-
-  def build_conversation(conversation_params)
-    Conversation.create!(
-      conversation_params.merge(
-        contact_inbox_id: @contact_inbox.id
-      )
-    )
+  def messages(entry)
+    (entry[:messaging].presence || entry[:standby] || [])
   end
 end

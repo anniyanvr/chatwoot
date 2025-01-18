@@ -16,22 +16,15 @@
 #  index_notes_on_contact_id  (contact_id)
 #  index_notes_on_user_id     (user_id)
 #
-# Foreign Keys
-#
-#  fk_rails_...  (account_id => accounts.id) ON DELETE => cascade
-#  fk_rails_...  (contact_id => contacts.id) ON DELETE => cascade
-#  fk_rails_...  (user_id => users.id) ON DELETE => cascade
-#
 class Note < ApplicationRecord
   before_validation :ensure_account_id
   validates :content, presence: true
   validates :account_id, presence: true
   validates :contact_id, presence: true
-  validates :user_id, presence: true
 
   belongs_to :account
   belongs_to :contact
-  belongs_to :user
+  belongs_to :user, optional: true
 
   scope :latest, -> { order(created_at: :desc) }
 

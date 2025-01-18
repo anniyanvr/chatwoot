@@ -6,7 +6,7 @@ class ConversationDrop < BaseDrop
   end
 
   def contact_name
-    @obj.try(:contact).name.capitalize || 'Customer'
+    @obj.try(:contact).name.try(:capitalize) || 'Customer'
   end
 
   def recent_messages
@@ -17,6 +17,11 @@ class ConversationDrop < BaseDrop
         'attachments' => message.attachments.map(&:file_url)
       }
     end
+  end
+
+  def custom_attribute
+    custom_attributes = @obj.try(:custom_attributes) || {}
+    custom_attributes.transform_keys(&:to_s)
   end
 
   private

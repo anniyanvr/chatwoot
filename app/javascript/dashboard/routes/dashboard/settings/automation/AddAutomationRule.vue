@@ -1,38 +1,175 @@
+<script>
+import { mapGetters } from 'vuex';
+import FilterInputBox from 'dashboard/components/widgets/FilterInput/Index.vue';
+import AutomationActionInput from 'dashboard/components/widgets/AutomationActionInput.vue';
+import { useAutomation } from 'dashboard/composables/useAutomation';
+import { validateAutomation } from 'dashboard/helper/validations';
+import {
+  generateAutomationPayload,
+  getAttributes,
+  getInputType,
+  getOperators,
+  getCustomAttributeType,
+  showActionInput,
+} from 'dashboard/helper/automationHelper';
+import { AUTOMATION_RULE_EVENTS, AUTOMATION_ACTION_TYPES } from './constants';
+
+const start_value = {
+  name: null,
+  description: null,
+  event_name: 'conversation_created',
+  conditions: [
+    {
+      attribute_key: 'status',
+      filter_operator: 'equal_to',
+      values: '',
+      query_operator: 'and',
+      custom_attribute_type: '',
+    },
+  ],
+  actions: [
+    {
+      action_name: 'assign_agent',
+      action_params: [],
+    },
+  ],
+};
+
+export default {
+  components: {
+    FilterInputBox,
+    AutomationActionInput,
+  },
+  props: {
+    onClose: {
+      type: Function,
+      default: () => {},
+    },
+  },
+  emits: ['saveAutomation'],
+  setup() {
+    const {
+      automation,
+      automationTypes,
+      onEventChange,
+      getConditionDropdownValues,
+      appendNewCondition,
+      appendNewAction,
+      removeFilter,
+      removeAction,
+      resetFilter,
+      resetAction,
+      getActionDropdownValues,
+      manifestCustomAttributes,
+    } = useAutomation(start_value);
+    return {
+      automation,
+      automationTypes,
+      onEventChange,
+      getConditionDropdownValues,
+      appendNewCondition,
+      appendNewAction,
+      removeFilter,
+      removeAction,
+      resetFilter,
+      resetAction,
+      getActionDropdownValues,
+      manifestCustomAttributes,
+    };
+  },
+  data() {
+    return {
+      automationRuleEvent: AUTOMATION_RULE_EVENTS[0].key,
+      automationRuleEvents: AUTOMATION_RULE_EVENTS,
+      automationMutated: false,
+      show: true,
+      showDeleteConfirmationModal: false,
+      allCustomAttributes: [],
+      mode: 'create',
+      errors: {},
+    };
+  },
+  computed: {
+    ...mapGetters({
+      accountId: 'getCurrentAccountId',
+      isFeatureEnabledonAccount: 'accounts/isFeatureEnabledonAccount',
+    }),
+    hasAutomationMutated() {
+      if (
+        this.automation.conditions[0].values ||
+        this.automation.actions[0].action_params.length
+      )
+        return true;
+      return false;
+    },
+    automationActionTypes() {
+      const isSLAEnabled = this.isFeatureEnabled('sla');
+      return isSLAEnabled
+        ? AUTOMATION_ACTION_TYPES
+        : AUTOMATION_ACTION_TYPES.filter(action => action.key !== 'add_sla');
+    },
+  },
+  mounted() {
+    this.$store.dispatch('inboxes/get');
+    this.$store.dispatch('agents/get');
+    this.$store.dispatch('contacts/get');
+    this.$store.dispatch('teams/get');
+    this.$store.dispatch('labels/get');
+    this.$store.dispatch('campaigns/get');
+    this.allCustomAttributes = this.$store.getters['attributes/getAttributes'];
+    this.manifestCustomAttributes();
+  },
+  methods: {
+    getAttributes,
+    getInputType,
+    getOperators,
+    getCustomAttributeType,
+    showActionInput,
+    isFeatureEnabled(flag) {
+      return this.isFeatureEnabledonAccount(this.accountId, flag);
+    },
+    emitSaveAutomation() {
+      this.errors = validateAutomation(this.automation);
+      if (Object.keys(this.errors).length === 0) {
+        const automation = generateAutomationPayload(this.automation);
+        this.$emit('saveAutomation', automation, this.mode);
+      }
+    },
+  },
+};
+</script>
+
 <template>
-  <div class="column">
+  <div>
     <woot-modal-header :header-title="$t('AUTOMATION.ADD.TITLE')" />
-    <div class="row modal-content">
-      <div class="medium-12 columns">
+    <div class="flex flex-col modal-content">
+      <div class="w-full">
         <woot-input
           v-model="automation.name"
           :label="$t('AUTOMATION.ADD.FORM.NAME.LABEL')"
           type="text"
-          :class="{ error: $v.automation.name.$error }"
-          :error="
-            $v.automation.name.$error
-              ? $t('AUTOMATION.ADD.FORM.NAME.ERROR')
-              : ''
-          "
+          :class="{ error: errors.name }"
+          :error="errors.name ? $t('AUTOMATION.ADD.FORM.NAME.ERROR') : ''"
           :placeholder="$t('AUTOMATION.ADD.FORM.NAME.PLACEHOLDER')"
-          @blur="$v.automation.name.$touch"
         />
         <woot-input
           v-model="automation.description"
           :label="$t('AUTOMATION.ADD.FORM.DESC.LABEL')"
           type="text"
-          :class="{ error: $v.automation.description.$error }"
+          :class="{ error: errors.description }"
           :error="
-            $v.automation.description.$error
-              ? $t('AUTOMATION.ADD.FORM.DESC.ERROR')
-              : ''
+            errors.description ? $t('AUTOMATION.ADD.FORM.DESC.ERROR') : ''
           "
           :placeholder="$t('AUTOMATION.ADD.FORM.DESC.PLACEHOLDER')"
-          @blur="$v.automation.description.$touch"
         />
-        <div class="event_wrapper">
-          <label :class="{ error: $v.automation.event_name.$error }">
+        <div class="mb-6">
+          <label :class="{ error: errors.event_name }">
             {{ $t('AUTOMATION.ADD.FORM.EVENT.LABEL') }}
-            <select v-model="automation.event_name" @change="onEventChange()">
+            <select
+              v-model="automation.event_name"
+              class="m-0"
+              @change="onEventChange(automation)"
+            >
               <option
                 v-for="event in automationRuleEvents"
                 :key="event.key"
@@ -41,11 +178,14 @@
                 {{ event.value }}
               </option>
             </select>
-            <span v-if="$v.automation.event_name.$error" class="message">
+            <span v-if="errors.event_name" class="message">
               {{ $t('AUTOMATION.ADD.FORM.EVENT.ERROR') }}
             </span>
           </label>
-          <p v-if="hasAutomationMutated" class="info-message">
+          <p
+            v-if="hasAutomationMutated"
+            class="text-xs text-right text-green-500 dark:text-green-500"
+          >
             {{ $t('AUTOMATION.FORM.RESET_MESSAGE') }}
           </p>
         </div>
@@ -54,25 +194,55 @@
           <label>
             {{ $t('AUTOMATION.ADD.FORM.CONDITIONS.LABEL') }}
           </label>
-          <div class="medium-12 columns filters-wrap">
-            <filter-input-box
+          <div
+            class="w-full p-4 mb-4 border border-solid rounded-lg bg-slate-25 dark:bg-slate-700 border-slate-50 dark:border-slate-700"
+          >
+            <FilterInputBox
               v-for="(condition, i) in automation.conditions"
               :key="i"
               v-model="automation.conditions[i]"
-              :filter-attributes="getAttributes(automation.event_name)"
-              :input-type="getInputType(automation.conditions[i].attribute_key)"
-              :operators="getOperators(automation.conditions[i].attribute_key)"
+              :filter-attributes="
+                getAttributes(automationTypes, automation.event_name)
+              "
+              :input-type="
+                getInputType(
+                  allCustomAttributes,
+                  automationTypes,
+                  automation,
+                  automation.conditions[i].attribute_key
+                )
+              "
+              :operators="
+                getOperators(
+                  allCustomAttributes,
+                  automationTypes,
+                  automation,
+                  mode,
+                  automation.conditions[i].attribute_key
+                )
+              "
               :dropdown-values="
                 getConditionDropdownValues(
                   automation.conditions[i].attribute_key
                 )
               "
               :show-query-operator="i !== automation.conditions.length - 1"
-              :v="$v.automation.conditions.$each[i]"
-              @resetFilter="resetFilter(i, automation.conditions[i])"
-              @removeFilter="removeFilter(i)"
+              :custom-attribute-type="
+                getCustomAttributeType(
+                  automationTypes,
+                  automation,
+                  automation.conditions[i].attribute_key
+                )
+              "
+              :error-message="
+                errors[`condition_${i}`]
+                  ? $t(`AUTOMATION.ERRORS.${errors[`condition_${i}`]}`)
+                  : ''
+              "
+              @reset-filter="resetFilter(i, automation.conditions[i])"
+              @remove-filter="removeFilter(i)"
             />
-            <div class="filter-actions">
+            <div class="mt-4">
               <woot-button
                 icon="add"
                 color-scheme="success"
@@ -91,8 +261,10 @@
           <label>
             {{ $t('AUTOMATION.ADD.FORM.ACTIONS.LABEL') }}
           </label>
-          <div class="medium-12 columns filters-wrap">
-            <automation-action-input
+          <div
+            class="w-full p-4 mb-4 border border-solid rounded-lg bg-slate-25 dark:bg-slate-700 border-slate-50 dark:border-slate-700"
+          >
+            <AutomationActionInput
               v-for="(action, i) in automation.actions"
               :key="i"
               v-model="automation.actions[i]"
@@ -100,11 +272,21 @@
               :dropdown-values="
                 getActionDropdownValues(automation.actions[i].action_name)
               "
-              :v="$v.automation.actions.$each[i]"
-              @resetAction="resetAction(i)"
-              @removeAction="removeAction(i)"
+              :show-action-input="
+                showActionInput(
+                  automationActionTypes,
+                  automation.actions[i].action_name
+                )
+              "
+              :error-message="
+                errors[`action_${i}`]
+                  ? $t(`AUTOMATION.ERRORS.${errors[`action_${i}`]}`)
+                  : ''
+              "
+              @reset-action="resetAction(i)"
+              @remove-action="removeAction(i)"
             />
-            <div class="filter-actions">
+            <div class="mt-4">
               <woot-button
                 icon="add"
                 color-scheme="success"
@@ -118,12 +300,12 @@
           </div>
         </section>
         <!-- // Actions End -->
-        <div class="medium-12 columns">
-          <div class="modal-footer justify-content-end w-full">
+        <div class="w-full">
+          <div class="flex flex-row justify-end w-full gap-2 px-0 py-2">
             <woot-button class="button clear" @click.prevent="onClose">
               {{ $t('AUTOMATION.ADD.CANCEL_BUTTON_TEXT') }}
             </woot-button>
-            <woot-button @click="submitAutomation">
+            <woot-button @click="emitSaveAutomation">
               {{ $t('AUTOMATION.ADD.SUBMIT') }}
             </woot-button>
           </div>
@@ -132,336 +314,3 @@
     </div>
   </div>
 </template>
-
-<script>
-import alertMixin from 'shared/mixins/alertMixin';
-import { required, requiredIf } from 'vuelidate/lib/validators';
-import filterInputBox from 'dashboard/components/widgets/FilterInput/Index.vue';
-import automationActionInput from 'dashboard/components/widgets/AutomationActionInput.vue';
-import languages from 'dashboard/components/widgets/conversation/advancedFilterItems/languages';
-import countries from '/app/javascript/shared/constants/countries.js';
-import {
-  AUTOMATION_RULE_EVENTS,
-  AUTOMATION_ACTION_TYPES,
-  AUTOMATIONS,
-} from './constants';
-import filterQueryGenerator from 'dashboard/helper/filterQueryGenerator.js';
-import actionQueryGenerator from 'dashboard/helper/actionQueryGenerator.js';
-
-export default {
-  components: {
-    filterInputBox,
-    automationActionInput,
-  },
-  mixins: [alertMixin],
-  props: {
-    onClose: {
-      type: Function,
-      default: () => {},
-    },
-  },
-  validations: {
-    automation: {
-      name: {
-        required,
-      },
-      description: {
-        required,
-      },
-      event_name: {
-        required,
-      },
-      conditions: {
-        required,
-        $each: {
-          values: {
-            required: requiredIf(prop => {
-              return !(
-                prop.filter_operator === 'is_present' ||
-                prop.filter_operator === 'is_not_present'
-              );
-            }),
-          },
-        },
-      },
-      actions: {
-        required,
-        $each: {
-          action_params: {
-            required: requiredIf(prop => {
-              return !(
-                prop.action_name === 'mute_conversation' ||
-                prop.action_name === 'snooze_convresation' ||
-                prop.action_name === 'resolve_convresation'
-              );
-            }),
-          },
-        },
-      },
-    },
-  },
-  data() {
-    return {
-      automationTypes: AUTOMATIONS,
-      automationRuleEvent: AUTOMATION_RULE_EVENTS[0].key,
-      automationRuleEvents: AUTOMATION_RULE_EVENTS,
-      automationActionTypes: AUTOMATION_ACTION_TYPES,
-      automationMutated: false,
-      show: true,
-      automation: {
-        name: null,
-        description: null,
-        event_name: 'conversation_created',
-        conditions: [
-          {
-            attribute_key: 'status',
-            filter_operator: 'equal_to',
-            values: '',
-            query_operator: 'and',
-          },
-        ],
-        actions: [
-          {
-            action_name: 'assign_team',
-            action_params: [],
-          },
-        ],
-      },
-      showDeleteConfirmationModal: false,
-    };
-  },
-  computed: {
-    conditions() {
-      return this.automationTypes[this.automation.event_name].conditions;
-    },
-    actions() {
-      return this.automationTypes[this.automation.event_name].actions;
-    },
-    filterAttributes() {
-      return this.filterTypes.map(type => {
-        return {
-          key: type.attributeKey,
-          name: type.attributeName,
-          attributeI18nKey: type.attributeI18nKey,
-        };
-      });
-    },
-    hasAutomationMutated() {
-      if (
-        this.automation.conditions[0].values ||
-        this.automation.actions[0].action_params.length
-      )
-        return true;
-      return false;
-    },
-  },
-  methods: {
-    onEventChange() {
-      if (this.automation.event_name === 'message_created') {
-        this.automation.conditions = [
-          {
-            attribute_key: 'message_type',
-            filter_operator: 'equal_to',
-            values: '',
-            query_operator: 'and',
-          },
-        ];
-      } else {
-        this.automation.conditions = [
-          {
-            attribute_key: 'status',
-            filter_operator: 'equal_to',
-            values: '',
-            query_operator: 'and',
-          },
-        ];
-      }
-      this.automation.actions = [
-        {
-          action_name: 'assign_team',
-          action_params: [],
-        },
-      ];
-    },
-    getAttributes(key) {
-      return this.automationTypes[key].conditions;
-    },
-    getInputType(key) {
-      const type = this.automationTypes[
-        this.automation.event_name
-      ].conditions.find(condition => condition.key === key);
-      return type.inputType;
-    },
-    getOperators(key) {
-      const type = this.automationTypes[
-        this.automation.event_name
-      ].conditions.find(condition => condition.key === key);
-      return type.filterOperators;
-    },
-    getConditionDropdownValues(type) {
-      const statusFilters = this.$t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS');
-      switch (type) {
-        case 'status':
-          return [
-            ...Object.keys(statusFilters).map(status => {
-              return {
-                id: status,
-                name: statusFilters[status].TEXT,
-              };
-            }),
-            {
-              id: 'all',
-              name: this.$t('CHAT_LIST.FILTER_ALL'),
-            },
-          ];
-        case 'assignee_id':
-          return this.$store.getters['agents/getAgents'];
-        case 'contact':
-          return this.$store.getters['contacts/getContacts'];
-        case 'inbox_id':
-          return this.$store.getters['inboxes/getInboxes'];
-        case 'team_id':
-          return this.$store.getters['teams/getTeams'];
-        case 'campaign_id':
-          return this.$store.getters['campaigns/getAllCampaigns'].map(i => {
-            return {
-              id: i.id,
-              name: i.title,
-            };
-          });
-        case 'labels':
-          return this.$store.getters['labels/getLabels'].map(i => {
-            return {
-              id: i.id,
-              name: i.title,
-            };
-          });
-        case 'browser_language':
-          return languages;
-        case 'country_code':
-          return countries;
-        case 'message_type':
-          return [
-            {
-              id: 'incoming',
-              name: 'Incoming Message',
-            },
-            {
-              id: 'outgoing',
-              name: 'Outgoing Message',
-            },
-          ];
-        default:
-          return undefined;
-      }
-    },
-    getActionDropdownValues(type) {
-      switch (type) {
-        case 'assign_team':
-          return this.$store.getters['teams/getTeams'];
-        case 'add_label':
-          return this.$store.getters['labels/getLabels'].map(i => {
-            return {
-              id: i.title,
-              name: i.title,
-            };
-          });
-        default:
-          return undefined;
-      }
-    },
-    appendNewCondition() {
-      switch (this.automation.event_name) {
-        case 'message_created':
-          this.automation.conditions.push({
-            attribute_key: 'message_type',
-            filter_operator: 'equal_to',
-            values: '',
-            query_operator: 'and',
-          });
-          break;
-        default:
-          this.automation.conditions.push({
-            attribute_key: 'status',
-            filter_operator: 'equal_to',
-            values: '',
-            query_operator: 'and',
-          });
-          break;
-      }
-    },
-    appendNewAction() {
-      this.automation.actions.push({
-        action_name: 'assign_team',
-        action_params: [],
-      });
-    },
-    removeFilter(index) {
-      if (this.automation.conditions.length <= 1) {
-        this.showAlert(this.$t('FILTER.FILTER_DELETE_ERROR'));
-      } else {
-        this.automation.conditions.splice(index, 1);
-      }
-    },
-    removeAction(index) {
-      if (this.automation.actions.length <= 1) {
-        this.showAlert(this.$t('FILTER.FILTER_DELETE_ERROR'));
-      } else {
-        this.automation.actions.splice(index, 1);
-      }
-    },
-    submitAutomation() {
-      this.$v.$touch();
-      if (this.$v.$invalid) return;
-      this.automation.conditions[
-        this.automation.conditions.length - 1
-      ].query_operator = null;
-      this.automation.conditions = filterQueryGenerator(
-        this.automation.conditions
-      ).payload;
-      this.automation.actions = actionQueryGenerator(this.automation.actions);
-      this.$emit('saveAutomation', this.automation);
-    },
-    resetFilter(index, currentCondition) {
-      this.automation.conditions[index].filter_operator = this.automationTypes[
-        this.automation.event_name
-      ].conditions.find(
-        condition => condition.key === currentCondition.attribute_key
-      ).filterOperators[0].value;
-      this.automation.conditions[index].values = '';
-    },
-    resetAction(index) {
-      this.automation.actions[index].action_params = [];
-    },
-    showUserInput(operatorType) {
-      if (operatorType === 'is_present' || operatorType === 'is_not_present')
-        return false;
-      return true;
-    },
-  },
-};
-</script>
-<style lang="scss" scoped>
-.filters-wrap {
-  padding: var(--space-normal);
-  border-radius: var(--border-radius-large);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-light);
-  margin-bottom: var(--space-normal);
-}
-
-.filter-actions {
-  margin-top: var(--space-normal);
-}
-.event_wrapper {
-  select {
-    margin: var(--space-zero);
-  }
-  .info-message {
-    font-size: var(--font-size-mini);
-    color: var(--s-500);
-    text-align: right;
-  }
-  margin-bottom: var(--space-medium);
-}
-</style>

@@ -10,17 +10,19 @@ const createConversation = params => {
       contact: {
         name: params.fullName,
         email: params.emailAddress,
+        phone_number: params.phoneNumber,
       },
       message: {
         content: params.message,
         timestamp: new Date().toString(),
         referer_url: referrerURL,
       },
+      custom_attributes: params.customAttributes,
     },
   };
 };
 
-const sendMessage = content => {
+const sendMessage = (content, replyTo) => {
   const referrerURL = window.referrerURL || '';
   const search = buildSearchParamsWithLocale(window.location.search);
   return {
@@ -28,6 +30,7 @@ const sendMessage = content => {
     params: {
       message: {
         content,
+        reply_to: replyTo,
         timestamp: new Date().toString(),
         referer_url: referrerURL,
       },
@@ -35,7 +38,7 @@ const sendMessage = content => {
   };
 };
 
-const sendAttachment = ({ attachment }) => {
+const sendAttachment = ({ attachment, replyTo = null }) => {
   const { referrerURL = '' } = window;
   const timestamp = new Date().toString();
   const { file } = attachment;
@@ -49,15 +52,18 @@ const sendAttachment = ({ attachment }) => {
 
   formData.append('message[referer_url]', referrerURL);
   formData.append('message[timestamp]', timestamp);
+  if (replyTo !== null) {
+    formData.append('message[reply_to]', replyTo);
+  }
   return {
     url: `/api/v1/widget/messages${window.location.search}`,
     params: formData,
   };
 };
 
-const getConversation = ({ before }) => ({
+const getConversation = ({ before, after }) => ({
   url: `/api/v1/widget/messages${window.location.search}`,
-  params: { before },
+  params: { before, after },
 });
 
 const updateMessage = id => ({
@@ -76,17 +82,27 @@ const getCampaigns = token => ({
     website_token: token,
   },
 });
-const triggerCampaign = ({ websiteToken, campaignId }) => ({
+const triggerCampaign = ({ websiteToken, campaignId, customAttributes }) => ({
   url: '/api/v1/widget/events',
   data: {
     name: 'campaign.triggered',
     event_info: {
       campaign_id: campaignId,
+      custom_attributes: customAttributes,
       ...generateEventParams(),
     },
   },
   params: {
     website_token: websiteToken,
+  },
+});
+
+const getMostReadArticles = (slug, locale) => ({
+  url: `/hc/${slug}/${locale}/articles.json`,
+  params: {
+    page: 1,
+    sort: 'views',
+    status: 1,
   },
 });
 
@@ -99,4 +115,5 @@ export default {
   getAvailableAgents,
   getCampaigns,
   triggerCampaign,
+  getMostReadArticles,
 };

@@ -1,112 +1,65 @@
+<script setup>
+import { computed } from 'vue';
+
+const props = defineProps({
+  config: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const isDefaultScreen = computed(() => {
+  return (
+    props.config.isDefaultScreen &&
+    ((props.config.welcomeHeading &&
+      props.config.welcomeHeading.length !== 0) ||
+      (props.config.welcomeTagLine && props.config.welcomeTagline.length !== 0))
+  );
+});
+</script>
+
 <template>
-  <div class="header-wrapper">
-    <div class="header-branding">
-      <div class="header">
+  <div
+    class="rounded-t-lg flex-shrink-0 transition-[max-height] duration-300"
+    :class="
+      isDefaultScreen
+        ? 'bg-slate-25 dark:bg-slate-800 px-4 py-5'
+        : 'bg-white dark:bg-slate-900 p-4'
+    "
+  >
+    <div class="relative top-px">
+      <div class="flex items-center justify-start">
         <img
           v-if="config.logo"
           :src="config.logo"
-          class="logo"
-          :class="{ small: !config.isExpanded }"
+          class="mr-2 rounded-full logo"
+          :class="!isDefaultScreen ? 'h-8 w-8 mb-1' : 'h-12 w-12 mb-2'"
         />
-        <div v-if="!config.isExpanded">
-          <div class="title-block text-base font-medium">
-            <span class="mr-1">{{ config.websiteName }}</span>
-            <div v-if="config.isOnline" class="online-dot"></div>
+        <div v-if="!isDefaultScreen">
+          <div class="flex items-center justify-start gap-1">
+            <span
+              class="text-base font-medium leading-3 text-slate-900 dark:text-white"
+            >
+              {{ config.websiteName }}
+            </span>
+            <div
+              v-if="config.isOnline"
+              class="w-2 h-2 bg-green-500 rounded-full"
+            />
           </div>
-          <div class="text-xs mt-1 text-black-700">
-            {{ responseTime }}
-          </div>
+          <span class="mt-1 text-xs text-slate-600 dark:text-slate-400">
+            {{ config.replyTime }}
+          </span>
         </div>
       </div>
-      <div v-if="config.isExpanded" class="header-expanded">
-        <h2 class="text-slate-900 mt-6 text-4xl mb-3 font-normal">
+      <div v-if="isDefaultScreen" class="overflow-auto max-h-60">
+        <h2 class="mb-2 text-2xl break-words text-slate-900 dark:text-white">
           {{ config.welcomeHeading }}
         </h2>
-        <p class="text-lg text-black-700 leading-normal">
-          {{ config.welcomeTagLine }}
+        <p class="text-sm break-words text-slate-600 dark:text-slate-100">
+          {{ config.welcomeTagline }}
         </p>
       </div>
     </div>
   </div>
 </template>
-
-<script>
-export default {
-  props: {
-    config: {
-      type: Object,
-      default() {
-        return {};
-      },
-    },
-  },
-  computed: {
-    responseTime() {
-      switch (this.config.replyTime) {
-        case 'in_a_few_minutes':
-          return this.$t(
-            'INBOX_MGMT.ADD.WEBSITE_CHANNEL.REPLY_TIME.IN_A_FEW_MINUTES'
-          );
-        case 'in_a_few_hours':
-          return this.$t(
-            'INBOX_MGMT.ADD.WEBSITE_CHANNEL.REPLY_TIME.IN_A_FEW_HOURS'
-          );
-        case 'in_a_day':
-          return this.$t('INBOX_MGMT.ADD.WEBSITE_CHANNEL.REPLY_TIME.IN_A_DAY');
-        default:
-          return this.$t(
-            'INBOX_MGMT.ADD.WEBSITE_CHANNEL.REPLY_TIME.IN_A_FEW_HOURS'
-          );
-      }
-    },
-  },
-};
-</script>
-
-<style lang="scss" scoped>
-$sucess-green: #10b981;
-.header-wrapper {
-  flex-shrink: 0;
-  transition: max-height 300ms;
-  background-color: var(--white);
-  padding: var(--space-two);
-
-  .header-branding {
-    max-height: 16rem;
-    .header {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: start;
-      .logo {
-        width: var(--space-jumbo);
-        height: var(--space-jumbo);
-        border-radius: 100%;
-        transition: all 0.5s ease;
-        margin-right: var(--space-small);
-        &.small {
-          width: var(--space-large);
-          height: var(--space-large);
-        }
-      }
-    }
-  }
-  .text-base {
-    font-size: var(--font-size-default);
-  }
-  .mt-6 {
-    margin-top: var(--space-medium);
-  }
-  .title-block {
-    display: flex;
-    align-items: center;
-    .online-dot {
-      background-color: $sucess-green;
-      height: var(--space-small);
-      width: var(--space-small);
-      border-radius: 100%;
-      margin: var(--space-zero) var(--space-one);
-    }
-  }
-}
-</style>

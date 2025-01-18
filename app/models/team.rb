@@ -15,18 +15,16 @@
 #  index_teams_on_account_id           (account_id)
 #  index_teams_on_name_and_account_id  (name,account_id) UNIQUE
 #
-# Foreign Keys
-#
-#  fk_rails_...  (account_id => accounts.id) ON DELETE => cascade
-#
 class Team < ApplicationRecord
+  include AccountCacheRevalidator
+
   belongs_to :account
   has_many :team_members, dependent: :destroy_async
   has_many :members, through: :team_members, source: :user
   has_many :conversations, dependent: :nullify
 
   validates :name,
-            presence: { message: 'must not be blank' },
+            presence: { message: I18n.t('errors.validations.presence') },
             uniqueness: { scope: :account_id }
 
   before_validation do
@@ -48,4 +46,13 @@ class Team < ApplicationRecord
   def reporting_events
     account.reporting_events.where(conversation_id: conversations.pluck(:id))
   end
+
+  def push_event_data
+    {
+      id: id,
+      name: name
+    }
+  end
 end
+
+Team.include_mod_with('Audit::Team')

@@ -28,11 +28,6 @@
 #  index_campaigns_on_inbox_id         (inbox_id)
 #  index_campaigns_on_scheduled_at     (scheduled_at)
 #
-# Foreign Keys
-#
-#  fk_rails_...  (account_id => accounts.id) ON DELETE => cascade
-#  fk_rails_...  (inbox_id => inboxes.id) ON DELETE => cascade
-#
 class Campaign < ApplicationRecord
   include UrlHelper
   validates :account_id, presence: true
@@ -91,7 +86,8 @@ class Campaign < ApplicationRecord
   def validate_url
     return unless trigger_rules['url']
 
-    errors.add(:url, 'invalid') if inbox.inbox_type == 'Website' && !url_valid?(trigger_rules['url'])
+    use_http_protocol = trigger_rules['url'].starts_with?('http://') || trigger_rules['url'].starts_with?('https://')
+    errors.add(:url, 'invalid') if inbox.inbox_type == 'Website' && !use_http_protocol
   end
 
   def prevent_completed_campaign_from_update

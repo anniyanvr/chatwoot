@@ -1,47 +1,13 @@
-/* eslint no-console: 0 */
 /* global axios */
-/* eslint no-undef: "error" */
 
 import Cookies from 'js-cookie';
 import endPoints from './endPoints';
-import { setAuthCredentials, clearCookiesOnLogout } from '../store/utils/api';
+import {
+  clearCookiesOnLogout,
+  deleteIndexedDBOnLogout,
+} from '../store/utils/api';
 
 export default {
-  login(creds) {
-    return new Promise((resolve, reject) => {
-      axios
-        .post('auth/sign_in', creds)
-        .then(response => {
-          setAuthCredentials(response);
-          resolve(response.data);
-        })
-        .catch(error => {
-          reject(error.response);
-        });
-    });
-  },
-
-  register(creds) {
-    const urlData = endPoints('register');
-    const fetchPromise = new Promise((resolve, reject) => {
-      axios
-        .post(urlData.url, {
-          account_name: creds.accountName.trim(),
-          user_full_name: creds.fullName.trim(),
-          email: creds.email,
-          password: creds.password,
-          h_captcha_client_response: creds.hCaptchaClientResponse,
-        })
-        .then(response => {
-          setAuthCredentials(response);
-          resolve(response);
-        })
-        .catch(error => {
-          reject(error);
-        });
-    });
-    return fetchPromise;
-  },
   validityCheck() {
     const urlData = endPoints('validityCheck');
     return axios.get(urlData.url);
@@ -52,6 +18,7 @@ export default {
       axios
         .delete(urlData.url)
         .then(response => {
+          deleteIndexedDBOnLogout();
           clearCookiesOnLogout();
           resolve(response);
         })
@@ -61,80 +28,16 @@ export default {
     });
     return fetchPromise;
   },
-
-  isLoggedIn() {
-    const hasAuthCookie = !!Cookies.getJSON('auth_data');
-    const hasUserCookie = !!Cookies.getJSON('user');
-    return hasAuthCookie && hasUserCookie;
+  hasAuthCookie() {
+    return !!Cookies.get('cw_d_session_info');
   },
-
-  isAdmin() {
-    if (this.isLoggedIn()) {
-      return Cookies.getJSON('user').role === 'administrator';
-    }
-    return false;
-  },
-
   getAuthData() {
-    if (this.isLoggedIn()) {
-      return Cookies.getJSON('auth_data');
+    if (this.hasAuthCookie()) {
+      const savedAuthInfo = Cookies.get('cw_d_session_info');
+      return JSON.parse(savedAuthInfo || '{}');
     }
     return false;
   },
-  getPubSubToken() {
-    if (this.isLoggedIn()) {
-      const user = Cookies.getJSON('user') || {};
-      const { pubsub_token: pubsubToken } = user;
-      return pubsubToken;
-    }
-    return null;
-  },
-  getCurrentUser() {
-    if (this.isLoggedIn()) {
-      return Cookies.getJSON('user');
-    }
-    return null;
-  },
-
-  verifyPasswordToken({ confirmationToken }) {
-    return new Promise((resolve, reject) => {
-      axios
-        .post('auth/confirmation', {
-          confirmation_token: confirmationToken,
-        })
-        .then(response => {
-          setAuthCredentials(response);
-          resolve(response);
-        })
-        .catch(error => {
-          reject(error.response);
-        });
-    });
-  },
-
-  setNewPassword({ resetPasswordToken, password, confirmPassword }) {
-    return new Promise((resolve, reject) => {
-      axios
-        .put('auth/password', {
-          reset_password_token: resetPasswordToken,
-          password_confirmation: confirmPassword,
-          password,
-        })
-        .then(response => {
-          setAuthCredentials(response);
-          resolve(response);
-        })
-        .catch(error => {
-          reject(error.response);
-        });
-    });
-  },
-
-  resetPassword({ email }) {
-    const urlData = endPoints('resetPassword');
-    return axios.post(urlData.url, { email });
-  },
-
   profileUpdate({
     password,
     password_confirmation,
@@ -172,7 +75,31 @@ export default {
     });
   },
 
+  updateAutoOffline(accountId, autoOffline = false) {
+    return axios.post(endPoints('autoOffline').url, {
+      profile: { account_id: accountId, auto_offline: autoOffline },
+    });
+  },
+
   deleteAvatar() {
     return axios.delete(endPoints('deleteAvatar').url);
+  },
+
+  resetPassword({ email }) {
+    const urlData = endPoints('resetPassword');
+    return axios.post(urlData.url, { email });
+  },
+
+  setActiveAccount({ accountId }) {
+    const urlData = endPoints('setActiveAccount');
+    return axios.put(urlData.url, {
+      profile: {
+        account_id: accountId,
+      },
+    });
+  },
+  resendConfirmation() {
+    const urlData = endPoints('resendConfirmation');
+    return axios.post(urlData.url);
   },
 };

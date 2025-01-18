@@ -1,6 +1,5 @@
 import inboxesAPI from '../inboxes';
 import ApiClient from '../ApiClient';
-import describeWithAPIMock from './apiSpecHelper';
 
 describe('#InboxesAPI', () => {
   it('creates correct instance', () => {
@@ -10,29 +9,36 @@ describe('#InboxesAPI', () => {
     expect(inboxesAPI).toHaveProperty('create');
     expect(inboxesAPI).toHaveProperty('update');
     expect(inboxesAPI).toHaveProperty('delete');
-    expect(inboxesAPI).toHaveProperty('getAssignableAgents');
     expect(inboxesAPI).toHaveProperty('getCampaigns');
+    expect(inboxesAPI).toHaveProperty('getAgentBot');
+    expect(inboxesAPI).toHaveProperty('setAgentBot');
   });
-  describeWithAPIMock('API calls', context => {
-    it('#getAssignableAgents', () => {
-      inboxesAPI.getAssignableAgents(1);
-      expect(context.axiosMock.get).toHaveBeenCalledWith(
-        '/api/v1/inboxes/1/assignable_agents'
-      );
+
+  describe('API calls', () => {
+    const originalAxios = window.axios;
+    const axiosMock = {
+      post: vi.fn(() => Promise.resolve()),
+      get: vi.fn(() => Promise.resolve()),
+      patch: vi.fn(() => Promise.resolve()),
+      delete: vi.fn(() => Promise.resolve()),
+    };
+
+    beforeEach(() => {
+      window.axios = axiosMock;
+    });
+
+    afterEach(() => {
+      window.axios = originalAxios;
     });
 
     it('#getCampaigns', () => {
       inboxesAPI.getCampaigns(2);
-      expect(context.axiosMock.get).toHaveBeenCalledWith(
-        '/api/v1/inboxes/2/campaigns'
-      );
+      expect(axiosMock.get).toHaveBeenCalledWith('/api/v1/inboxes/2/campaigns');
     });
 
     it('#deleteInboxAvatar', () => {
       inboxesAPI.deleteInboxAvatar(2);
-      expect(context.axiosMock.delete).toHaveBeenCalledWith(
-        '/api/v1/inboxes/2/avatar'
-      );
+      expect(axiosMock.delete).toHaveBeenCalledWith('/api/v1/inboxes/2/avatar');
     });
   });
 });

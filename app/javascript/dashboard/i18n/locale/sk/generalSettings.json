@@ -3,6 +3,7 @@
     "TITLE": "Nastavenia účtu",
     "SUBMIT": "Aktualizovať nastavenia",
     "BACK": "Späť",
+    "DISMISS": "Dismiss",
     "UPDATE": {
       "ERROR": "Nastavenia sa nepodarilo aktualizovať, skúste to znova!",
       "SUCCESS": "Úspešne aktualizované nastavenia účtu"
@@ -23,7 +24,7 @@
         "ERROR": "Zadajte platný názov účtu"
       },
       "LANGUAGE": {
-        "LABEL": "Jazyk stránky (Beta)",
+        "LABEL": "Site language",
         "PLACEHOLDER": "Názov vášho účtu",
         "ERROR": ""
       },
@@ -47,19 +48,30 @@
         "CUSTOM_EMAIL_DOMAIN_ENABLED": "Teraz môžete prijímať e-maily vo vlastnej doméne."
       }
     },
-    "UPDATE_CHATWOOT": "K dispozícii je aktualizácia %{latestChatwootVersion} pre Chatwoot. Prosím, aktualizujte svoju inštanciu.",
-    "LEARN_MORE": "Learn more"
+    "UPDATE_CHATWOOT": "K dispozícii je aktualizácia {latestChatwootVersion} pre Chatwoot. Prosím, aktualizujte svoju inštanciu.",
+    "LEARN_MORE": "Learn more",
+    "PAYMENT_PENDING": "Your payment is pending. Please update your payment information to continue using Chatwoot",
+    "LIMITS_UPGRADE": "Your account has exceeded the usage limits, please upgrade your plan to continue using Chatwoot",
+    "OPEN_BILLING": "Open billing"
   },
   "FORMS": {
     "MULTISELECT": {
       "ENTER_TO_SELECT": "Stlačením tlačidla enter vyberte",
       "ENTER_TO_REMOVE": "Stlačením tlačidla enter vymažte",
-      "SELECT_ONE": "Vyberte jeden"
+      "SELECT_ONE": "Vyberte jeden",
+      "SELECT": "Select"
     }
   },
   "NOTIFICATIONS_PAGE": {
     "HEADER": "Upozornenia",
     "MARK_ALL_DONE": "Označiť všetky ako hotové",
+    "DELETE_TITLE": "deleted",
+    "UNREAD_NOTIFICATION": {
+      "TITLE": "Unread Notifications",
+      "ALL_NOTIFICATIONS": "View all notifications",
+      "LOADING_UNREAD_MESSAGE": "Loading unread notifications...",
+      "EMPTY_MESSAGE": "You have no unread notifications"
+    },
     "LIST": {
       "LOADING_MESSAGE": "Načítavajú sa notifikácie...",
       "404": "Žiadne notifikácie",
@@ -74,12 +86,18 @@
       "conversation_creation": "Nová konverzácia",
       "conversation_assignment": "Konverzácia pridelená",
       "assigned_conversation_new_message": "Nová správa",
-      "conversation_mention": "Zmienka"
+      "participating_conversation_new_message": "Nová správa",
+      "conversation_mention": "Zmienka",
+      "sla_missed_first_response": "SLA Missed",
+      "sla_missed_next_response": "SLA Missed",
+      "sla_missed_resolution": "SLA Missed"
     }
   },
   "NETWORK": {
     "NOTIFICATION": {
-      "TEXT": "Chatwoot je odpojený"
+      "OFFLINE": "Offline",
+      "RECONNECTING": "Reconnecting...",
+      "RECONNECT_SUCCESS": "Reconnected"
     },
     "BUTTON": {
       "REFRESH": "Obnoviť"
@@ -91,16 +109,23 @@
       "GENERAL": "Všeobecné",
       "REPORTS": "Reporty",
       "CONVERSATION": "Konverzácia",
+      "BULK_ACTIONS": "Bulk Actions",
       "CHANGE_ASSIGNEE": "Zmeniť prideleného agenta",
+      "CHANGE_PRIORITY": "Change Priority",
       "CHANGE_TEAM": "Zmeniť tím",
+      "SNOOZE_CONVERSATION": "Snooze Conversation",
       "ADD_LABEL": "Pridať štítok do konverzácie",
       "REMOVE_LABEL": "Odstrániť štítok z konverzácie",
-      "SETTINGS": "Nastavenia"
+      "SETTINGS": "Nastavenia",
+      "AI_ASSIST": "AI Assist",
+      "APPEARANCE": "Appearance",
+      "SNOOZE_NOTIFICATION": "Snooze Notification"
     },
     "COMMANDS": {
       "GO_TO_CONVERSATION_DASHBOARD": "Prejsť na ovládací panel konverzácie",
       "GO_TO_CONTACTS_DASHBOARD": "Prejsť na ovládací panel kontaktov",
       "GO_TO_REPORTS_OVERVIEW": "Prejsť na prehľad reportov",
+      "GO_TO_CONVERSATION_REPORTS": "Go to Conversation Reports",
       "GO_TO_AGENT_REPORTS": "Prejsť na reporty o agentoch",
       "GO_TO_LABEL_REPORTS": "Prejsť na reporty o štítkoch",
       "GO_TO_INBOX_REPORTS": "Prejsť na reporty o schránkach",
@@ -116,6 +141,8 @@
       "GO_TO_NOTIFICATIONS": "Go to Notifications",
       "ADD_LABELS_TO_CONVERSATION": "Pridať štítok do konverzácie",
       "ASSIGN_AN_AGENT": "Assign an agent",
+      "AI_ASSIST": "AI Assist",
+      "ASSIGN_PRIORITY": "Assign priority",
       "ASSIGN_A_TEAM": "Assign a team",
       "MUTE_CONVERSATION": "Mute conversation",
       "UNMUTE_CONVERSATION": "Unmute conversation",
@@ -126,7 +153,22 @@
       "SNOOZE_CONVERSATION": "Snooze Conversation",
       "UNTIL_NEXT_REPLY": "Until next reply",
       "UNTIL_NEXT_WEEK": "Until next week",
-      "UNTIL_TOMORROW": "Until tomorrow"
+      "UNTIL_TOMORROW": "Until tomorrow",
+      "UNTIL_NEXT_MONTH": "Until next month",
+      "AN_HOUR_FROM_NOW": "Until an hour from now",
+      "UNTIL_CUSTOM_TIME": "Custom...",
+      "CHANGE_APPEARANCE": "Change Appearance",
+      "LIGHT_MODE": "Light",
+      "DARK_MODE": "Dark",
+      "SYSTEM_MODE": "System",
+      "SNOOZE_NOTIFICATION": "Snooze Notification"
     }
+  },
+  "DASHBOARD_APPS": {
+    "LOADING_MESSAGE": "Loading Dashboard App..."
+  },
+  "COMMON": {
+    "OR": "Or",
+    "CLICK_HERE": "kliknite sem"
   }
 }

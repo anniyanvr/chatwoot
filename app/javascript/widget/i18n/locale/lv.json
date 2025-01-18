@@ -1,78 +1,142 @@
 {
   "COMPONENTS": {
     "FILE_BUBBLE": {
-      "DOWNLOAD": "Download",
-      "UPLOADING": "Uploading..."
+      "DOWNLOAD": "Lejupielādēt",
+      "UPLOADING": "Notiek Augšupielāde..."
     },
     "FORM_BUBBLE": {
-      "SUBMIT": "Submit"
+      "SUBMIT": "Iesniegt"
     },
     "MESSAGE_BUBBLE": {
-      "RETRY": "Send message again",
-      "ERROR_MESSAGE": "Couldn't send, try again"
+      "RETRY": "Sūtīt ziņojumu vēlreiz",
+      "ERROR_MESSAGE": "Nevarēja nosūtīt. Lūdzu, mēģiniet vēlreiz"
     }
   },
   "TEAM_AVAILABILITY": {
-    "ONLINE": "We are online",
-    "OFFLINE": "We are away at the moment"
+    "ONLINE": "Mēs esam tiešsaistē",
+    "OFFLINE": "Šobrīd mēs neesam uz vietas"
   },
   "REPLY_TIME": {
-    "IN_A_FEW_MINUTES": "Typically replies in a few minutes",
-    "IN_A_FEW_HOURS": "Typically replies in a few hours",
-    "IN_A_DAY": "Typically replies in a day"
+    "IN_A_FEW_MINUTES": "Parasti atbild pēc dažām minūtēm",
+    "IN_A_FEW_HOURS": "Parasti atbild pēc dažām stundām",
+    "IN_A_DAY": "Parasti atbild vienas dienas laikā",
+    "BACK_IN": "Mēs atgriezīsimies tiešsaistē"
   },
-  "START_CONVERSATION": "Start Conversation",
-  "END_CONVERSATION": "End Conversation",
-  "CONTINUE_CONVERSATION": "Continue conversation",
-  "START_NEW_CONVERSATION": "Start a new conversation",
+  "DAY_NAMES": [
+    "Svētdiena",
+    "Pirmdiena",
+    "Otrdiena",
+    "Trešdiena",
+    "Ceturtdiena",
+    "Piektdiena",
+    "Sestdiena"
+  ],
+  "START_CONVERSATION": "Sākt Sarunu",
+  "END_CONVERSATION": "Beigt Sarunu",
+  "CONTINUE_CONVERSATION": "Turpināt Sarunu",
+  "YOU": "Jūs",
+  "START_NEW_CONVERSATION": "Sākt jaunu sarunu",
+  "VIEW_UNREAD_MESSAGES": "Jums ir nelasītas ziņas",
   "UNREAD_VIEW": {
-    "VIEW_MESSAGES_BUTTON": "See new messages",
-    "CLOSE_MESSAGES_BUTTON": "Close",
-    "COMPANY_FROM": "from",
+    "VIEW_MESSAGES_BUTTON": "Skatīt jaunus ziņojumus",
+    "CLOSE_MESSAGES_BUTTON": "Aizvērt",
+    "COMPANY_FROM": "no",
     "BOT": "Bot"
   },
   "BUBBLE": {
-    "LABEL": "Chat with us"
+    "LABEL": "Tērzēt ar mums"
   },
-  "POWERED_BY": "Powered by Chatwoot",
-  "EMAIL_PLACEHOLDER": "Please enter your email",
-  "CHAT_PLACEHOLDER": "Type your message",
-  "TODAY": "Today",
-  "YESTERDAY": "Yesterday",
+  "POWERED_BY": "Darbināts ar Chatwoot",
+  "EMAIL_PLACEHOLDER": "Lūdzu, ievadiet savu e-pastu",
+  "CHAT_PLACEHOLDER": "Rakstiet savu ziņojumu",
+  "TODAY": "Šodien",
+  "YESTERDAY": "Vakar",
   "PRE_CHAT_FORM": {
     "FIELDS": {
       "FULL_NAME": {
-        "LABEL": "Full Name",
-        "PLACEHOLDER": "Please enter your full name",
-        "ERROR": "Full Name is required"
+        "LABEL": "Pilns Vārds",
+        "PLACEHOLDER": "Lūdzu, ievadiet savu pilno vārdu",
+        "REQUIRED_ERROR": "Nepieciešams pilns vārds"
       },
       "EMAIL_ADDRESS": {
-        "LABEL": "Email Address",
-        "PLACEHOLDER": "Please enter your email address",
-        "ERROR": "Invalid email address"
+        "LABEL": "e-pasta Adrese",
+        "PLACEHOLDER": "Lūdzu ievadiet savu e-pasta adresi",
+        "REQUIRED_ERROR": "Nepieciešama e -pasta adrese",
+        "VALID_ERROR": "Lūdzu, ievadiet derīgu e-pasta adresi"
+      },
+      "PHONE_NUMBER": {
+        "LABEL": "Telefona numurs",
+        "PLACEHOLDER": "Lūdzu, ievadiet savu tālruņa numuru",
+        "REQUIRED_ERROR": "Nepieciešams tālruņa numurs",
+        "DIAL_CODE_VALID_ERROR": "Lūdzu, izvēlieties valsts kodu",
+        "VALID_ERROR": "Lūdzu ievadiet derīgu telefona numuru",
+        "DROPDOWN_EMPTY": "Nav atrasts",
+        "DROPDOWN_SEARCH": "Meklēt valsti"
       },
       "MESSAGE": {
-        "LABEL": "Message",
-        "PLACEHOLDER": "Please enter your message",
-        "ERROR": "Message too short"
+        "LABEL": "Ziņojums",
+        "PLACEHOLDER": "Lūdzu, ievadiet savu ziņojumu",
+        "ERROR": "Ziņojums ir pārāk īss"
       }
     },
-    "CAMPAIGN_HEADER": "Please provide your name and email before starting the conversation"
+    "CAMPAIGN_HEADER": "Lūdzu, pirms sarunas sākšanas, norādiet savu vārdu un e -pastu",
+    "IS_REQUIRED": "ir nepieciešams",
+    "REQUIRED": "Nepieciešams",
+    "REGEX_ERROR": "Lūdzu, ievadiet pareizi"
   },
-  "FILE_SIZE_LIMIT": "File exceeds the {MAXIMUM_FILE_UPLOAD_SIZE} attachment limit",
+  "FILE_SIZE_LIMIT": "Fails pārsniedz {MAXIMUM_FILE_UPLOAD_SIZE} pielikuma lieluma ierobežojumu",
   "CHAT_FORM": {
     "INVALID": {
-      "FIELD": "Invalid field"
+      "FIELD": "Nederīgs lauks"
     }
   },
+  "EMOJI": {
+    "PLACEHOLDER": "Meklēt emocijzīmes",
+    "NOT_FOUND": "Neviena emocijzīme neatbilst jūsu meklēšanas vaicājumam",
+    "ARIA_LABEL": "Emocijzīmju atlasītājs"
+  },
   "CSAT": {
-    "TITLE": "Rate your conversation",
-    "SUBMITTED_TITLE": "Thank you for submitting the rating",
-    "PLACEHOLDER": "Tell us more..."
+    "TITLE": "Novērtējiet Jūsu sarunu",
+    "SUBMITTED_TITLE": "Paldies, ka iesniedzāt novērtējumu",
+    "PLACEHOLDER": "Pastāsti mums vairāk..."
   },
   "EMAIL_TRANSCRIPT": {
-    "BUTTON_TEXT": "Request a conversation transcript",
-    "SEND_EMAIL_SUCCESS": "The chat transcript was sent successfully",
-    "SEND_EMAIL_ERROR": "There was an error, please try again"
+    "BUTTON_TEXT": "Pieprasīt sarunas transkriptu",
+    "SEND_EMAIL_SUCCESS": "Sarunas transkripts tika veiksmīgi nosūtīts",
+    "SEND_EMAIL_ERROR": "Radās kļūda. Lūdzu, mēģiniet vēlreiz"
+  },
+  "INTEGRATIONS": {
+    "DYTE": {
+      "CLICK_HERE_TO_JOIN": "Noklikšķiniet šeit, lai pievienotos",
+      "LEAVE_THE_ROOM": "Beigt zvanu"
+    }
+  },
+  "PORTAL": {
+    "POPULAR_ARTICLES": "Populāri Raksti",
+    "VIEW_ALL_ARTICLES": "Skatīt visus rakstus",
+    "IFRAME_LOAD_ERROR": "Ielādējot rakstu radās kļūda. Lūdzu, atsvaidziniet lapu un mēģiniet vēlreiz."
+  },
+  "ATTACHMENTS": {
+    "image": {
+      "CONTENT": "Attēla ziņojums"
+    },
+    "audio": {
+      "CONTENT": "Audio ziņojums"
+    },
+    "video": {
+      "CONTENT": "Video ziņojums"
+    },
+    "file": {
+      "CONTENT": "Faila pielikums"
+    },
+    "location": {
+      "CONTENT": "Atrašanās vieta"
+    },
+    "fallback": {
+      "CONTENT": "ir kopīgojis URL"
+    }
+  },
+  "FOOTER_REPLY_TO": {
+    "REPLY_TO": "Atbildot uz:"
   }
 }

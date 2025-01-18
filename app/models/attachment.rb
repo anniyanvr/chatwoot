@@ -14,6 +14,11 @@
 #  account_id       :integer          not null
 #  message_id       :integer          not null
 #
+# Indexes
+#
+#  index_attachments_on_account_id  (account_id)
+#  index_attachments_on_message_id  (message_id)
+#
 
 class Attachment < ApplicationRecord
   include Rails.application.routes.url_helpers
@@ -28,46 +33,60 @@ class Attachment < ApplicationRecord
     application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
     application/vnd.openxmlformats-officedocument.wordprocessingml.document
   ].freeze
-
   belongs_to :account
   belongs_to :message
   has_one_attached :file
   validate :acceptable_file
-
-  enum file_type: [:image, :audio, :video, :file, :location, :fallback, :share, :story_mention]
+  validates :external_url, length: { maximum: Limits::URL_LENGTH_LIMIT }
+  enum file_type: { :image => 0, :audio => 1, :video => 2, :file => 3, :location => 4, :fallback => 5, :share => 6, :story_mention => 7,
+                    :contact => 8, :ig_reel => 9 }
 
   def push_event_data
     return unless file_type
     return base_data.merge(location_metadata) if file_type.to_sym == :location
     return base_data.merge(fallback_data) if file_type.to_sym == :fallback
+    return base_data.merge(contact_metadata) if file_type.to_sym == :contact
 
     base_data.merge(file_metadata)
   end
 
+  # NOTE: the URl returned does a 301 redirect to the actual file
   def file_url
     file.attached? ? url_for(file) : ''
   end
 
+  # NOTE: for External services use this methods since redirect doesn't work effectively in a lot of cases
   def download_url
-    file.attached? ? rails_storage_proxy_url(file) : ''
+    ActiveStorage::Current.url_options = Rails.application.routes.default_url_options if ActiveStorage::Current.url_options.blank?
+    file.attached? ? file.blob.url : ''
   end
 
   def thumb_url
     if file.attached? && file.representable?
-      url_for(file.representation(resize: '250x250'))
+      url_for(file.representation(resize_to_fill: [250, nil]))
     else
       ''
     end
   end
 
+  def with_attached_file?
+    [:image, :audio, :video, :file].include?(file_type.to_sym)
+  end
+
   private
 
   def file_metadata
-    {
+    metadata = {
       extension: extension,
       data_url: file_url,
-      thumb_url: thumb_url
+      thumb_url: thumb_url,
+      file_size: file.byte_size,
+      width: file.metadata[:width],
+      height: file.metadata[:height]
     }
+
+    metadata[:data_url] = metadata[:thumb_url] = external_url if message.inbox.instagram? && message.incoming?
+    metadata
   end
 
   def location_metadata
@@ -92,6 +111,12 @@ class Attachment < ApplicationRecord
       message_id: message_id,
       file_type: file_type,
       account_id: account_id
+    }
+  end
+
+  def contact_metadata
+    {
+      fallback_title: fallback_title
     }
   end
 

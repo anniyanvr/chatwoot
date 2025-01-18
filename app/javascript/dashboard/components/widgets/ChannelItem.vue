@@ -1,56 +1,7 @@
-<template>
-  <div
-    class="small-6 medium-4 large-3 columns channel"
-    :class="{ inactive: !isActive }"
-    @click="onItemClick"
-  >
-    <img
-      v-if="channel.key === 'facebook'"
-      src="~dashboard/assets/images/channels/messenger.png"
-    />
-    <img
-      v-if="channel.key === 'twitter'"
-      src="~dashboard/assets/images/channels/twitter.png"
-    />
-    <img
-      v-if="channel.key === 'telegram'"
-      src="~dashboard/assets/images/channels/telegram.png"
-    />
-    <img
-      v-if="channel.key === 'api' && !channel.thumbnail"
-      src="~dashboard/assets/images/channels/api.png"
-    />
-    <img
-      v-if="channel.key === 'api' && channel.thumbnail"
-      :src="channel.thumbnail"
-    />
-    <img
-      v-if="channel.key === 'email'"
-      src="~dashboard/assets/images/channels/email.png"
-    />
-    <img
-      v-if="channel.key === 'line'"
-      src="~dashboard/assets/images/channels/line.png"
-    />
-    <img
-      v-if="channel.key === 'website'"
-      src="~dashboard/assets/images/channels/website.png"
-    />
-    <img
-      v-if="channel.key === 'sms'"
-      src="~dashboard/assets/images/channels/sms.png"
-    />
-    <img
-      v-if="channel.key === 'whatsapp'"
-      src="~dashboard/assets/images/channels/whatsapp.png"
-    />
-    <h3 class="channel__title">
-      {{ channel.name }}
-    </h3>
-  </div>
-</template>
 <script>
+import ChannelSelector from '../ChannelSelector.vue';
 export default {
+  components: { ChannelSelector },
   props: {
     channel: {
       type: Object,
@@ -61,17 +12,21 @@ export default {
       required: true,
     },
   },
+  emits: ['channelItemClick'],
   computed: {
+    hasFbConfigured() {
+      return window.chatwootConfig?.fbAppId;
+    },
     isActive() {
       const { key } = this.channel;
       if (Object.keys(this.enabledFeatures).length === 0) {
         return false;
       }
-      if (key === 'facebook') {
-        return this.enabledFeatures.channel_facebook;
+      if (key === 'website') {
+        return this.enabledFeatures.channel_website;
       }
-      if (key === 'twitter') {
-        return this.enabledFeatures.channel_twitter;
+      if (key === 'facebook') {
+        return this.enabledFeatures.channel_facebook && this.hasFbConfigured;
       }
       if (key === 'email') {
         return this.enabledFeatures.channel_email;
@@ -89,11 +44,26 @@ export default {
     },
   },
   methods: {
+    getChannelThumbnail() {
+      if (this.channel.key === 'api' && this.channel.thumbnail) {
+        return this.channel.thumbnail;
+      }
+      return `/assets/images/dashboard/channels/${this.channel.key}.png`;
+    },
     onItemClick() {
       if (this.isActive) {
-        this.$emit('channel-item-click', this.channel.key);
+        this.$emit('channelItemClick', this.channel.key);
       }
     },
   },
 };
 </script>
+
+<template>
+  <ChannelSelector
+    :class="{ inactive: !isActive }"
+    :title="channel.name"
+    :src="getChannelThumbnail()"
+    @click="onItemClick"
+  />
+</template>

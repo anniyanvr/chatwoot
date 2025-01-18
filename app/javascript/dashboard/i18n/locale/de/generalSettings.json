@@ -1,14 +1,15 @@
 {
   "GENERAL_SETTINGS": {
     "TITLE": "Kontoeinstellungen",
-    "SUBMIT": "Update Einstellungen",
+    "SUBMIT": "Einstellungen aktualisieren",
     "BACK": "Zurück",
+    "DISMISS": "Verwerfen",
     "UPDATE": {
       "ERROR": "Einstellungen konnten nicht aktualisiert werden, versuchen Sie es erneut!",
       "SUCCESS": "Kontoeinstellungen erfolgreich aktualisiert"
     },
     "FORM": {
-      "ERROR": "Bitte korrigieren Sie Formularfehler",
+      "ERROR": "Bitte Formularfehler korrigieren",
       "GENERAL_SECTION": {
         "TITLE": "Allgemeine Einstellungen",
         "NOTE": ""
@@ -23,7 +24,7 @@
         "ERROR": "Bitte geben Sie einen gültigen Kontonamen ein"
       },
       "LANGUAGE": {
-        "LABEL": "Site-Sprache (Beta)",
+        "LABEL": "Sprache",
         "PLACEHOLDER": "Ihr Kontoname",
         "ERROR": ""
       },
@@ -47,19 +48,30 @@
         "CUSTOM_EMAIL_DOMAIN_ENABLED": "Sie können jetzt E-Mails in Ihrer benutzerdefinierten Domäne empfangen."
       }
     },
-    "UPDATE_CHATWOOT": "Ein Update %{latestChatwootVersion} für Chatwoot ist verfügbar. Bitte aktualisieren Sie Ihre Instanz.",
-    "LEARN_MORE": "Mehr erfahren"
+    "UPDATE_CHATWOOT": "Ein Update {latestChatwootVersion} für Chatwoot ist verfügbar. Bitte aktualisieren Sie Ihre Instanz.",
+    "LEARN_MORE": "Mehr erfahren",
+    "PAYMENT_PENDING": "Ihre Zahlung steht noch aus. Um Chatwoot weiter zu verwenden, aktualisieren Sie Bitte Ihre Zahlungsinformationen",
+    "LIMITS_UPGRADE": "Ihr Konto hat die Nutzungsbeschränkungen überschritten. Um Chatwoot weiter nutzen zu können aktualisieren Sie bitte Ihren Tarif",
+    "OPEN_BILLING": "Rechnung öffnen"
   },
   "FORMS": {
     "MULTISELECT": {
       "ENTER_TO_SELECT": "Drücken Sie zur Auswahl die Eingabetaste",
       "ENTER_TO_REMOVE": "Drücken Sie zum Entfernen die Eingabetaste",
-      "SELECT_ONE": "Eines wählen"
+      "SELECT_ONE": "Eines wählen",
+      "SELECT": "Auswählen"
     }
   },
   "NOTIFICATIONS_PAGE": {
     "HEADER": "Push-Benachrichtigungen",
     "MARK_ALL_DONE": "Alle als Erledigt markieren",
+    "DELETE_TITLE": "Gelöscht",
+    "UNREAD_NOTIFICATION": {
+      "TITLE": "Ungelesene Benachrichtigungen",
+      "ALL_NOTIFICATIONS": "Alle Benachrichtigungen anzeigen",
+      "LOADING_UNREAD_MESSAGE": "Ungelesene Benachrichtigungen werden geladen...",
+      "EMPTY_MESSAGE": "Sie haben keine ungelesenen Benachrichtigungen"
+    },
     "LIST": {
       "LOADING_MESSAGE": "Benachrichtigungen werden geladen...",
       "404": "Keine Benachrichtigungen",
@@ -74,12 +86,18 @@
       "conversation_creation": "Neue Konversation",
       "conversation_assignment": "Konversation zugewiesen",
       "assigned_conversation_new_message": "Neue Nachricht",
-      "conversation_mention": "Erwähnung"
+      "participating_conversation_new_message": "Neue Nachricht",
+      "conversation_mention": "Erwähnung",
+      "sla_missed_first_response": "SLA verpasst",
+      "sla_missed_next_response": "SLA verpasst",
+      "sla_missed_resolution": "SLA verpasst"
     }
   },
   "NETWORK": {
     "NOTIFICATION": {
-      "TEXT": "Verbindung zu Chatwoot getrennt"
+      "OFFLINE": "Offline",
+      "RECONNECTING": "Verbinde neu...",
+      "RECONNECT_SUCCESS": "Wiederverbunden"
     },
     "BUTTON": {
       "REFRESH": "Neu laden"
@@ -91,16 +109,23 @@
       "GENERAL": "Generell",
       "REPORTS": "Berichte",
       "CONVERSATION": "Konversation",
+      "BULK_ACTIONS": "Massenaktionen",
       "CHANGE_ASSIGNEE": "Beauftragten ändern",
+      "CHANGE_PRIORITY": "Priorität ändern",
       "CHANGE_TEAM": "Team wechseln",
+      "SNOOZE_CONVERSATION": "Konversation stummschalten",
       "ADD_LABEL": "Label zur Konversation hinzufügen",
       "REMOVE_LABEL": "Label aus der Konversation entfernen",
-      "SETTINGS": "die Einstellungen"
+      "SETTINGS": "Einstellungen",
+      "AI_ASSIST": "AI-Assistent",
+      "APPEARANCE": "Darstellung",
+      "SNOOZE_NOTIFICATION": "Ungelesene Benachrichtigungen"
     },
     "COMMANDS": {
-      "GO_TO_CONVERSATION_DASHBOARD": "Zur Konversationsübersicht gehen",
+      "GO_TO_CONVERSATION_DASHBOARD": "Zur Konversationsübersicht",
       "GO_TO_CONTACTS_DASHBOARD": "Zur Kontaktübersicht",
       "GO_TO_REPORTS_OVERVIEW": "Zur Berichtsübersicht",
+      "GO_TO_CONVERSATION_REPORTS": "Gehen Sie zu Konversationsberichten",
       "GO_TO_AGENT_REPORTS": "Zu den Agentenberichten",
       "GO_TO_LABEL_REPORTS": "Zu den Label-Berichten",
       "GO_TO_INBOX_REPORTS": "Zu den Posteingangsberichten",
@@ -116,6 +141,8 @@
       "GO_TO_NOTIFICATIONS": "Zu Benachrichtigungen",
       "ADD_LABELS_TO_CONVERSATION": "Label zur Konversation hinzufügen",
       "ASSIGN_AN_AGENT": "Einen Agent zuweisen",
+      "AI_ASSIST": "AI-Assistent",
+      "ASSIGN_PRIORITY": "Priorität zuweisen",
       "ASSIGN_A_TEAM": "Ein Team zuweisen",
       "MUTE_CONVERSATION": "Konversation stummschalten",
       "UNMUTE_CONVERSATION": "Konversation entstummen",
@@ -126,7 +153,22 @@
       "SNOOZE_CONVERSATION": "Snooze-Konversation",
       "UNTIL_NEXT_REPLY": "Bis zur nächsten Antwort",
       "UNTIL_NEXT_WEEK": "Bis nächste Woche",
-      "UNTIL_TOMORROW": "Bis morgen"
+      "UNTIL_TOMORROW": "Bis morgen",
+      "UNTIL_NEXT_MONTH": "bis zum nächsten Monat",
+      "AN_HOUR_FROM_NOW": "bis in einer Stunde von jetzt an",
+      "UNTIL_CUSTOM_TIME": "individuell",
+      "CHANGE_APPEARANCE": "Aussehen ändern",
+      "LIGHT_MODE": "Hell",
+      "DARK_MODE": "Dunkel",
+      "SYSTEM_MODE": "System",
+      "SNOOZE_NOTIFICATION": "Ungelesene Benachrichtigungen"
     }
+  },
+  "DASHBOARD_APPS": {
+    "LOADING_MESSAGE": "Dashboard-App wird geladen..."
+  },
+  "COMMON": {
+    "OR": "Oder",
+    "CLICK_HERE": "hier klicken"
   }
 }

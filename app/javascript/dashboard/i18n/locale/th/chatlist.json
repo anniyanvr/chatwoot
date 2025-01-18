@@ -6,39 +6,19 @@
     "LIST": {
       "404": "ไม่มีการสนทนาที่ใช้งานในกลุ่มนี้"
     },
+    "FAILED_TO_SEND": "Failed to send",
     "TAB_HEADING": "การสนทนา",
-    "MENTION_HEADING": "Mentions",
+    "MENTION_HEADING": "กล่าวถึง",
+    "UNATTENDED_HEADING": "ไม่ได้เข้าร่วม",
     "SEARCH": {
       "INPUT": "ค้นหาผู้คน, เเชท, หรือการตอบกลับ"
     },
     "FILTER_ALL": "ทั้งหมด",
-    "STATUS_TABS": [
-      {
-        "NAME": "เปิด",
-        "KEY": "openCount"
-      },
-      {
-        "NAME": "เสร็จสิ้น",
-        "KEY": "allConvCount"
-      }
-    ],
-    "ASSIGNEE_TYPE_TABS": [
-      {
-        "NAME": "ของฉัน",
-        "KEY": "me",
-        "COUNT_KEY": "mineCount"
-      },
-      {
-        "NAME": "ไม่ได้รับมอบหมาย",
-        "KEY": "unassigned",
-        "COUNT_KEY": "unAssignedCount"
-      },
-      {
-        "NAME": "ทั้งหมด",
-        "KEY": "all",
-        "COUNT_KEY": "allCount"
-      }
-    ],
+    "ASSIGNEE_TYPE_TABS": {
+      "me": "ของฉัน",
+      "unassigned": "ไม่ได้รับมอบหมาย",
+      "all": "ทั้งหมด"
+    },
     "CHAT_STATUS_FILTER_ITEMS": {
       "open": {
         "TEXT": "เปิด"
@@ -51,6 +31,51 @@
       },
       "snoozed": {
         "TEXT": "หลับ"
+      },
+      "all": {
+        "TEXT": "ทั้งหมด"
+      }
+    },
+    "VIEW_FILTER": "ดู",
+    "SORT_TOOLTIP_LABEL": "Sort conversations",
+    "CHAT_SORT": {
+      "STATUS": "สถานะ",
+      "ORDER_BY": "Order by"
+    },
+    "CHAT_TIME_STAMP": {
+      "CREATED": {
+        "LATEST": "Created",
+        "OLDEST": "สร้างเมื่อ:"
+      },
+      "LAST_ACTIVITY": {
+        "NOT_ACTIVE": "Last activity:",
+        "ACTIVE": "Last activity"
+      }
+    },
+    "SORT_ORDER_ITEMS": {
+      "last_activity_at_asc": {
+        "TEXT": "Last activity: Oldest first"
+      },
+      "last_activity_at_desc": {
+        "TEXT": "Last activity: Newest first"
+      },
+      "created_at_desc": {
+        "TEXT": "Created at: Newest first"
+      },
+      "created_at_asc": {
+        "TEXT": "Created at: Oldest first"
+      },
+      "priority_desc": {
+        "TEXT": "Priority: Highest first"
+      },
+      "priority_asc": {
+        "TEXT": "Priority: Lowest first"
+      },
+      "waiting_since_asc": {
+        "TEXT": "Pending Response: Longest first"
+      },
+      "waiting_since_desc": {
+        "TEXT": "Pending Response: Shortest first"
       }
     },
     "ATTACHMENTS": {
@@ -69,18 +94,43 @@
       "location": {
         "CONTENT": "สถานที่"
       },
+      "ig_reel": {
+        "CONTENT": "Instagram Reel"
+      },
       "fallback": {
         "CONTENT": "ได้เเชร์ลิ้ง"
+      }
+    },
+    "CHAT_SORT_BY_FILTER": {
+      "TITLE": "Sort conversation",
+      "DROPDOWN_TITLE": "เรียงด้วย",
+      "ITEMS": {
+        "LATEST": {
+          "NAME": "Last activity at",
+          "LABEL": "Last activity"
+        },
+        "CREATED_AT": {
+          "NAME": "สร้างเมื่อ",
+          "LABEL": "สร้างเมื่อ"
+        },
+        "LAST_USER_MESSAGE_AT": {
+          "NAME": "Last user message at",
+          "LABEL": "Last message"
+        }
       }
     },
     "RECEIVED_VIA_EMAIL": "ได้รับทางอีเมลล์",
     "VIEW_TWEET_IN_TWITTER": "ดูทวิตในทวิตเตอร์",
     "REPLY_TO_TWEET": "ตอบกลับทวิตนี้",
-    "LINK_TO_STORY": "ดูการสนทนาย้อนหลัง",
-    "SENT": "จัดส่งสำเร็จ",
+    "LINK_TO_STORY": "ไปยังอินสตาแกรมสตอรี่",
+    "SENT": "ส่งสำเร็จแล้ว",
+    "READ": "Read successfully",
+    "DELIVERED": "Delivered successfully",
     "NO_MESSAGES": "ไม่มีข้อความ",
     "NO_CONTENT": "ไม่มีเนื้อหา",
     "HIDE_QUOTED_TEXT": "ซ่อนข้อความในเครื่องหมายคำพูด",
-    "SHOW_QUOTED_TEXT": "แสดงข้อความในเครื่องหมายคำพูด"
+    "SHOW_QUOTED_TEXT": "แสดงข้อความในเครื่องหมายคำพูด",
+    "MESSAGE_READ": "อ่านแล้ว",
+    "SENDING": "Sending"
   }
 }

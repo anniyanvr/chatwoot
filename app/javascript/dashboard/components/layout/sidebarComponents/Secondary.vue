@@ -1,25 +1,14 @@
-<template>
-  <div v-if="hasSecondaryMenu" class="main-nav secondary-menu">
-    <account-context />
-    <transition-group name="menu-list" tag="ul" class="menu vertical">
-      <secondary-nav-item
-        v-for="menuItem in accessibleMenuItems"
-        :key="menuItem.toState"
-        :menu-item="menuItem"
-      />
-      <secondary-nav-item
-        v-for="menuItem in additionalSecondaryMenuItems[menuConfig.parentNav]"
-        :key="menuItem.key"
-        :menu-item="menuItem"
-        @add-label="showAddLabelPopup"
-      />
-    </transition-group>
-  </div>
-</template>
 <script>
 import { frontendURL } from '../../../helper/URLHelper';
 import SecondaryNavItem from './SecondaryNavItem.vue';
 import AccountContext from './AccountContext.vue';
+import { mapGetters } from 'vuex';
+import { FEATURE_FLAGS } from '../../../featureFlags';
+import {
+  getUserPermissions,
+  hasPermissions,
+} from '../../../helper/permissionsHelper';
+import { routesWithPermissions } from '../../../routes';
 
 export default {
   components: {
@@ -51,48 +40,69 @@ export default {
       type: Object,
       default: () => {},
     },
-    currentRole: {
-      type: String,
-      default: '',
+    currentUser: {
+      type: Object,
+      default: () => {},
+    },
+    isOnChatwootCloud: {
+      type: Boolean,
+      default: false,
     },
   },
+  emits: ['addLabel', 'toggleAccounts'],
   computed: {
-    hasSecondaryMenu() {
-      return this.menuConfig.menuItems && this.menuConfig.menuItems.length;
-    },
+    ...mapGetters({
+      isFeatureEnabledonAccount: 'accounts/isFeatureEnabledonAccount',
+    }),
     contactCustomViews() {
       return this.customViews.filter(view => view.filter_type === 'contact');
     },
     accessibleMenuItems() {
-      if (!this.currentRole) {
-        return [];
-      }
-      return this.menuConfig.menuItems.filter(
-        menuItem =>
-          window.roleWiseRoutes[this.currentRole].indexOf(
-            menuItem.toStateName
-          ) > -1
+      const menuItemsFilteredByPermissions = this.menuConfig.menuItems.filter(
+        menuItem => {
+          const userPermissions = getUserPermissions(
+            this.currentUser,
+            this.accountId
+          );
+          return hasPermissions(
+            routesWithPermissions[menuItem.toStateName],
+            userPermissions
+          );
+        }
       );
+      return menuItemsFilteredByPermissions.filter(item => {
+        if (item.showOnlyOnCloud) {
+          return this.isOnChatwootCloud;
+        }
+        return true;
+      });
     },
     inboxSection() {
       return {
         icon: 'folder',
         label: 'INBOXES',
         hasSubMenu: true,
-        newLink: true,
+        newLink: this.showNewLink(FEATURE_FLAGS.INBOX_MANAGEMENT),
         newLinkTag: 'NEW_INBOX',
         key: 'inbox',
         toState: frontendURL(`accounts/${this.accountId}/settings/inboxes/new`),
         toStateName: 'settings_inbox_new',
         newLinkRouteName: 'settings_inbox_new',
-        children: this.inboxes.map(inbox => ({
-          id: inbox.id,
-          label: inbox.name,
-          truncateLabel: true,
-          toState: frontendURL(`accounts/${this.accountId}/inbox/${inbox.id}`),
-          type: inbox.channel_type,
-          phoneNumber: inbox.phone_number,
-        })),
+        children: this.inboxes
+          .map(inbox => ({
+            id: inbox.id,
+            label: inbox.name,
+            truncateLabel: true,
+            toState: frontendURL(
+              `accounts/${this.accountId}/inbox/${inbox.id}`
+            ),
+            type: inbox.channel_type,
+            phoneNumber: inbox.phone_number,
+            reauthorizationRequired: inbox.reauthorization_required,
+          }))
+          .sort((a, b) =>
+            a.label.toLowerCase() > b.label.toLowerCase() ? 1 : -1
+          ),
       };
     },
     labelSection() {
@@ -100,13 +110,14 @@ export default {
         icon: 'number-symbol',
         label: 'LABELS',
         hasSubMenu: true,
-        newLink: true,
+        newLink: this.showNewLink(FEATURE_FLAGS.TEAM_MANAGEMENT),
         newLinkTag: 'NEW_LABEL',
         key: 'label',
         toState: frontendURL(`accounts/${this.accountId}/settings/labels`),
         toStateName: 'labels_list',
         showModalForNewItem: true,
         modalName: 'AddLabel',
+        dataTestid: 'sidebar-new-label-button',
         children: this.labels.map(label => ({
           id: label.id,
           label: label.title,
@@ -123,8 +134,8 @@ export default {
         icon: 'number-symbol',
         label: 'TAGGED_WITH',
         hasSubMenu: true,
-        key: 'label',
-        newLink: true,
+        key: 'labels',
+        newLink: this.showNewLink(FEATURE_FLAGS.TEAM_MANAGEMENT),
         newLinkTag: 'NEW_LABEL',
         toState: frontendURL(`accounts/${this.accountId}/settings/labels`),
         toStateName: 'labels_list',
@@ -136,7 +147,7 @@ export default {
           color: label.color,
           truncateLabel: true,
           toState: frontendURL(
-            `accounts/${this.accountId}/labels/${label.title}/contacts`
+            `accounts/${this.accountId}/contacts/labels/${label.title}`
           ),
         })),
       };
@@ -146,7 +157,7 @@ export default {
         icon: 'people-team',
         label: 'TEAMS',
         hasSubMenu: true,
-        newLink: true,
+        newLink: this.showNewLink(FEATURE_FLAGS.TEAM_MANAGEMENT),
         newLinkTag: 'NEW_TEAM',
         key: 'team',
         toState: frontendURL(`accounts/${this.accountId}/settings/teams/new`),
@@ -183,7 +194,7 @@ export default {
         icon: 'folder',
         label: 'CUSTOM_VIEWS_SEGMENTS',
         hasSubMenu: true,
-        key: 'custom_view',
+        key: 'segments',
         children: this.customViews
           .filter(view => view.filter_type === 'contact')
           .map(view => ({
@@ -191,7 +202,7 @@ export default {
             label: view.name,
             truncateLabel: true,
             toState: frontendURL(
-              `accounts/${this.accountId}/contacts/custom_view/${view.id}`
+              `accounts/${this.accountId}/contacts/segments/${view.id}`
             ),
           })),
       };
@@ -216,23 +227,39 @@ export default {
   },
   methods: {
     showAddLabelPopup() {
-      this.$emit('add-label');
+      this.$emit('addLabel');
+    },
+    toggleAccountModal() {
+      this.$emit('toggleAccounts');
+    },
+    showNewLink(featureFlag) {
+      return this.isFeatureEnabledonAccount(this.accountId, featureFlag);
     },
   },
 };
 </script>
-<style lang="scss" scoped>
-.secondary-menu {
-  background: var(--white);
-  border-right: 1px solid var(--s-50);
-  height: 100%;
-  width: 19rem;
-  flex-shrink: 0;
-  overflow: hidden;
-  padding: var(--space-small);
 
-  &:hover {
-    overflow: auto;
-  }
-}
-</style>
+<template>
+  <div
+    class="flex flex-col w-48 h-full px-2 pb-8 overflow-auto text-sm bg-white border-r dark:bg-slate-900 dark:border-slate-800/50 rtl:border-r-0 rtl:border-l border-slate-50"
+  >
+    <AccountContext @toggle-accounts="toggleAccountModal" />
+    <transition-group
+      name="menu-list"
+      tag="ul"
+      class="pt-2 list-none reset-base"
+    >
+      <SecondaryNavItem
+        v-for="menuItem in accessibleMenuItems"
+        :key="menuItem.toState"
+        :menu-item="menuItem"
+      />
+      <SecondaryNavItem
+        v-for="menuItem in additionalSecondaryMenuItems[menuConfig.parentNav]"
+        :key="menuItem.key"
+        :menu-item="menuItem"
+        @add-label="showAddLabelPopup"
+      />
+    </transition-group>
+  </div>
+</template>

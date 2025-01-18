@@ -6,39 +6,19 @@
     "LIST": {
       "404": "V tejto skupine neprebiehajú žiadne aktívne rozhovory."
     },
+    "FAILED_TO_SEND": "Failed to send",
     "TAB_HEADING": "Rozhovory",
     "MENTION_HEADING": "Zmienky",
+    "UNATTENDED_HEADING": "Unattended",
     "SEARCH": {
       "INPUT": "Vyhľadávanie ľudí, konverzácií, uložených odpovedí.."
     },
     "FILTER_ALL": "Všetko",
-    "STATUS_TABS": [
-      {
-        "NAME": "Otvorené",
-        "KEY": "openCount"
-      },
-      {
-        "NAME": "Vyriešené",
-        "KEY": "allConvCount"
-      }
-    ],
-    "ASSIGNEE_TYPE_TABS": [
-      {
-        "NAME": "Moje",
-        "KEY": "me",
-        "COUNT_KEY": "mineCount"
-      },
-      {
-        "NAME": "Nepriradené",
-        "KEY": "unassigned",
-        "COUNT_KEY": "unAssignedCount"
-      },
-      {
-        "NAME": "Všetko",
-        "KEY": "all",
-        "COUNT_KEY": "allCount"
-      }
-    ],
+    "ASSIGNEE_TYPE_TABS": {
+      "me": "Moje",
+      "unassigned": "Nepriradené",
+      "all": "Všetko"
+    },
     "CHAT_STATUS_FILTER_ITEMS": {
       "open": {
         "TEXT": "Otvorené"
@@ -51,6 +31,51 @@
       },
       "snoozed": {
         "TEXT": "Odložené"
+      },
+      "all": {
+        "TEXT": "Všetko"
+      }
+    },
+    "VIEW_FILTER": "Zobraziť",
+    "SORT_TOOLTIP_LABEL": "Sort conversations",
+    "CHAT_SORT": {
+      "STATUS": "Status",
+      "ORDER_BY": "Order by"
+    },
+    "CHAT_TIME_STAMP": {
+      "CREATED": {
+        "LATEST": "Created",
+        "OLDEST": "Created at:"
+      },
+      "LAST_ACTIVITY": {
+        "NOT_ACTIVE": "Last activity:",
+        "ACTIVE": "Last activity"
+      }
+    },
+    "SORT_ORDER_ITEMS": {
+      "last_activity_at_asc": {
+        "TEXT": "Last activity: Oldest first"
+      },
+      "last_activity_at_desc": {
+        "TEXT": "Last activity: Newest first"
+      },
+      "created_at_desc": {
+        "TEXT": "Created at: Newest first"
+      },
+      "created_at_asc": {
+        "TEXT": "Created at: Oldest first"
+      },
+      "priority_desc": {
+        "TEXT": "Priority: Highest first"
+      },
+      "priority_asc": {
+        "TEXT": ""
+      },
+      "waiting_since_asc": {
+        "TEXT": "Pending Response: Longest first"
+      },
+      "waiting_since_desc": {
+        "TEXT": "Pending Response: Shortest first"
       }
     },
     "ATTACHMENTS": {
@@ -69,8 +94,29 @@
       "location": {
         "CONTENT": "Lokácia"
       },
+      "ig_reel": {
+        "CONTENT": "Instagram Reel"
+      },
       "fallback": {
         "CONTENT": "zdieľal/a url"
+      }
+    },
+    "CHAT_SORT_BY_FILTER": {
+      "TITLE": "Sort conversation",
+      "DROPDOWN_TITLE": "Sort by",
+      "ITEMS": {
+        "LATEST": {
+          "NAME": "Last activity at",
+          "LABEL": "Last activity"
+        },
+        "CREATED_AT": {
+          "NAME": "Created at",
+          "LABEL": "Created at"
+        },
+        "LAST_USER_MESSAGE_AT": {
+          "NAME": "Last user message at",
+          "LABEL": "Last message"
+        }
       }
     },
     "RECEIVED_VIA_EMAIL": "Prijaté emailom",
@@ -78,9 +124,13 @@
     "REPLY_TO_TWEET": "Odpovedať na tento Tweet",
     "LINK_TO_STORY": "Go to instagram story",
     "SENT": "Úspešne odoslané",
+    "READ": "Read successfully",
+    "DELIVERED": "Delivered successfully",
     "NO_MESSAGES": "Žiadne správy",
     "NO_CONTENT": "Žiaden obsah nie je k dispozícii",
     "HIDE_QUOTED_TEXT": "Skryť citovaný text",
-    "SHOW_QUOTED_TEXT": "Ukázať citovaný text"
+    "SHOW_QUOTED_TEXT": "Ukázať citovaný text",
+    "MESSAGE_READ": "Read",
+    "SENDING": "Sending"
   }
 }

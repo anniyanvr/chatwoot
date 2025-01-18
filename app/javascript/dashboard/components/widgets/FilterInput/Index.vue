@@ -1,11 +1,151 @@
+<script>
+export default {
+  name: 'FilterInput',
+  props: {
+    modelValue: {
+      type: Object,
+      default: () => {},
+    },
+    filterAttributes: {
+      type: Array,
+      default: () => [],
+    },
+    inputType: {
+      type: String,
+      default: 'plain_text',
+    },
+    operators: {
+      type: Array,
+      default: () => [],
+    },
+    dropdownValues: {
+      type: Array,
+      default: () => [],
+    },
+    showQueryOperator: {
+      type: Boolean,
+      default: false,
+    },
+    showUserInput: {
+      type: Boolean,
+      default: true,
+    },
+    groupedFilters: {
+      type: Boolean,
+      default: false,
+    },
+    filterGroups: {
+      type: Array,
+      default: () => [],
+    },
+    customAttributeType: {
+      type: String,
+      default: '',
+    },
+    errorMessage: {
+      type: String,
+      default: '',
+    },
+  },
+  emits: ['update:modelValue', 'removeFilter', 'resetFilter'],
+  computed: {
+    attributeKey: {
+      get() {
+        if (!this.modelValue) return null;
+        return this.modelValue.attribute_key;
+      },
+      set(value) {
+        const payload = this.modelValue || {};
+        this.$emit('update:modelValue', { ...payload, attribute_key: value });
+      },
+    },
+    filterOperator: {
+      get() {
+        if (!this.modelValue) return null;
+        return this.modelValue.filter_operator;
+      },
+      set(value) {
+        const payload = this.modelValue || {};
+        this.$emit('update:modelValue', { ...payload, filter_operator: value });
+      },
+    },
+    values: {
+      get() {
+        if (!this.modelValue) return null;
+        return this.modelValue.values;
+      },
+      set(value) {
+        const payload = this.modelValue || {};
+        this.$emit('update:modelValue', { ...payload, values: value });
+      },
+    },
+    query_operator: {
+      get() {
+        if (!this.modelValue) return null;
+        return this.modelValue.query_operator;
+      },
+      set(value) {
+        const payload = this.modelValue || {};
+        this.$emit('update:modelValue', { ...payload, query_operator: value });
+      },
+    },
+    custom_attribute_type: {
+      get() {
+        if (!this.customAttributeType) return '';
+        return this.customAttributeType;
+      },
+      set() {
+        const payload = this.modelValue || {};
+        this.$emit('update:modelValue', {
+          ...payload,
+          custom_attribute_type: this.customAttributeType,
+        });
+      },
+    },
+  },
+  watch: {
+    customAttributeType: {
+      handler(value) {
+        if (
+          value === 'conversation_attribute' ||
+          value === 'contact_attribute'
+        ) {
+          // eslint-disable-next-line vue/no-mutating-props
+          this.modelValue.custom_attribute_type = this.customAttributeType;
+          // eslint-disable-next-line vue/no-mutating-props
+        } else this.modelValue.custom_attribute_type = '';
+      },
+      immediate: true,
+    },
+  },
+  methods: {
+    removeFilter() {
+      this.$emit('removeFilter');
+    },
+    resetFilter() {
+      this.$emit('resetFilter');
+    },
+    getInputErrorClass(errorMessage) {
+      return errorMessage
+        ? 'bg-red-50 dark:bg-red-800/50 border-red-100 dark:border-red-700/50'
+        : 'bg-slate-50 dark:bg-slate-800 border-slate-75 dark:border-slate-700/50';
+    },
+  },
+};
+</script>
+
+<!-- eslint-disable vue/no-mutating-props -->
 <template>
-  <div class="filters">
-    <div class="filter" :class="{ error: v.values.$dirty && v.values.$error }">
-      <div class="filter-inputs">
+  <div>
+    <div
+      class="p-2 border border-solid rounded-md"
+      :class="getInputErrorClass(errorMessage)"
+    >
+      <div class="flex">
         <select
           v-if="groupedFilters"
           v-model="attributeKey"
-          class="filter__question"
+          class="bg-white max-w-[30%] dark:bg-slate-900 mb-0 mr-1 text-slate-800 dark:text-slate-100 border-slate-75 dark:border-slate-600"
           @change="resetFilter()"
         >
           <optgroup
@@ -17,6 +157,7 @@
               v-for="attribute in group.attributes"
               :key="attribute.key"
               :value="attribute.key"
+              :selected="true"
             >
               {{ attribute.name }}
             </option>
@@ -25,19 +166,23 @@
         <select
           v-else
           v-model="attributeKey"
-          class="filter__question"
+          class="bg-white max-w-[30%] dark:bg-slate-900 mb-0 mr-1 text-slate-800 dark:text-slate-100 border-slate-75 dark:border-slate-600"
           @change="resetFilter()"
         >
           <option
             v-for="attribute in filterAttributes"
             :key="attribute.key"
             :value="attribute.key"
+            :disabled="attribute.disabled"
           >
             {{ attribute.name }}
           </option>
         </select>
 
-        <select v-model="filterOperator" class="filter__operator">
+        <select
+          v-model="filterOperator"
+          class="bg-white dark:bg-slate-900 max-w-[20%] mb-0 mr-1 text-slate-800 dark:text-slate-100 border-slate-75 dark:border-slate-600"
+        >
           <option
             v-for="(operator, o) in operators"
             :key="o"
@@ -47,7 +192,7 @@
           </option>
         </select>
 
-        <div v-if="showUserInput" class="filter__answer--wrap">
+        <div v-if="showUserInput" class="flex-grow mr-1 filter__answer--wrap">
           <div
             v-if="inputType === 'multi_select'"
             class="multiselect-wrap--small"
@@ -56,8 +201,8 @@
               v-model="values"
               track-by="id"
               label="name"
-              :placeholder="'Select'"
-              :multiple="true"
+              placeholder="Select"
+              multiple
               selected-label
               :select-label="$t('FORMS.MULTISELECT.ENTER_TO_SELECT')"
               deselect-label=""
@@ -74,7 +219,7 @@
               v-model="values"
               track-by="id"
               label="name"
-              :placeholder="'Select'"
+              placeholder="Select"
               selected-label
               :select-label="$t('FORMS.MULTISELECT.ENTER_TO_SELECT')"
               deselect-label=""
@@ -89,15 +234,15 @@
               v-model="values"
               type="date"
               :editable="false"
-              class="answer--text-input datepicker"
+              class="mb-0 datepicker"
             />
           </div>
           <input
             v-else
             v-model="values"
             type="text"
-            class="answer--text-input"
-            placeholder="Enter value"
+            class="mb-0"
+            :placeholder="$t('FILTER.INPUT_PLACEHOLDER')"
           />
         </div>
         <woot-button
@@ -107,14 +252,22 @@
           @click="removeFilter"
         />
       </div>
-      <p v-if="v.values.$dirty && v.values.$error" class="filter-error">
-        {{ $t('FILTER.EMPTY_VALUE_ERROR') }}
+      <p v-if="errorMessage" class="filter-error">
+        {{ errorMessage }}
       </p>
     </div>
 
-    <div v-if="showQueryOperator" class="filter__join-operator">
-      <hr class="operator__line" />
-      <select v-model="query_operator" class="operator__select">
+    <div
+      v-if="showQueryOperator"
+      class="flex items-center justify-center relative my-2.5 mx-0"
+    >
+      <hr
+        class="absolute w-full border-b border-solid border-slate-75 dark:border-slate-800"
+      />
+      <select
+        v-model="query_operator"
+        class="relative w-auto mb-0 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-75 dark:border-slate-600"
+      >
         <option value="and">
           {{ $t('FILTER.QUERY_DROPDOWN_LABELS.AND') }}
         </option>
@@ -126,183 +279,18 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: {
-    value: {
-      type: Object,
-      default: () => null,
-    },
-    filterAttributes: {
-      type: Array,
-      default: () => [],
-    },
-    inputType: {
-      type: String,
-      default: 'plain_text',
-    },
-    dataType: {
-      type: String,
-      default: 'plain_text',
-    },
-    operators: {
-      type: Array,
-      default: () => [],
-    },
-    dropdownValues: {
-      type: Array,
-      default: () => [],
-    },
-    showQueryOperator: {
-      type: Boolean,
-      default: false,
-    },
-    v: {
-      type: Object,
-      default: () => null,
-    },
-    showUserInput: {
-      type: Boolean,
-      default: true,
-    },
-    groupedFilters: {
-      type: Boolean,
-      default: false,
-    },
-    filterGroups: {
-      type: Array,
-      default: () => [],
-    },
-  },
-  computed: {
-    attributeKey: {
-      get() {
-        if (!this.value) return null;
-        return this.value.attribute_key;
-      },
-      set(value) {
-        const payload = this.value || {};
-        this.$emit('input', { ...payload, attribute_key: value });
-      },
-    },
-    filterOperator: {
-      get() {
-        if (!this.value) return null;
-        return this.value.filter_operator;
-      },
-      set(value) {
-        const payload = this.value || {};
-        this.$emit('input', { ...payload, filter_operator: value });
-      },
-    },
-    values: {
-      get() {
-        if (!this.value) return null;
-        return this.value.values;
-      },
-      set(value) {
-        const payload = this.value || {};
-        this.$emit('input', { ...payload, values: value });
-      },
-    },
-    query_operator: {
-      get() {
-        if (!this.value) return null;
-        return this.value.query_operator;
-      },
-      set(value) {
-        const payload = this.value || {};
-        this.$emit('input', { ...payload, query_operator: value });
-      },
-    },
-  },
-  methods: {
-    removeFilter() {
-      this.$emit('removeFilter');
-    },
-    resetFilter() {
-      this.$emit('resetFilter');
-    },
-  },
-};
-</script>
 <style lang="scss" scoped>
-.filter {
-  background: var(--color-background);
-  padding: var(--space-small);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-medium);
-}
-
-.filter.error {
-  background: var(--r-50);
-}
-
-.filter-inputs {
-  display: flex;
+.filter__answer--wrap {
+  input {
+    @apply bg-white dark:bg-slate-900 mb-0 text-slate-800 dark:text-slate-100 border-slate-75 dark:border-slate-600;
+  }
 }
 
 .filter-error {
-  color: var(--r-500);
-  display: block;
-  margin: var(--space-smaller) 0;
-}
-
-.filter__question,
-.filter__operator {
-  margin-bottom: var(--space-zero);
-  margin-right: var(--space-smaller);
-}
-
-.filter__question {
-  max-width: 30%;
-}
-
-.filter__operator {
-  max-width: 20%;
-}
-
-.filter__answer--wrap {
-  margin-right: var(--space-smaller);
-  flex-grow: 1;
-
-  input {
-    margin-bottom: 0;
-  }
-}
-.filter__answer {
-  &.answer--text-input {
-    margin-bottom: var(--space-zero);
-  }
-}
-
-.filter__join-operator-wrap {
-  position: relative;
-  z-index: var(--z-index-twenty);
-  margin: var(--space-zero);
-}
-
-.filter__join-operator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  margin: var(--space-one) var(--space-zero);
-
-  .operator__line {
-    position: absolute;
-    width: 100%;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .operator__select {
-    position: relative;
-    width: auto;
-    margin-bottom: var(--space-zero) !important;
-  }
+  @apply text-red-500 dark:text-red-200 block my-1 mx-0;
 }
 
 .multiselect {
-  margin-bottom: var(--space-zero);
+  @apply mb-0;
 }
 </style>

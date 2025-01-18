@@ -1,15 +1,3 @@
-<template>
-  <li
-    class="dropdown-menu__item"
-    :class="{
-      'is-disabled': disabled,
-    }"
-    :tabindex="disabled ? null : -1"
-    :aria-disabled="disabled"
-  >
-    <slot></slot>
-  </li>
-</template>
 <script>
 export default {
   name: 'WootDropdownItem',
@@ -19,38 +7,40 @@ export default {
       type: Boolean,
       default: false,
     },
-    className: {
-      type: String,
-      default: '',
-    },
   },
 };
 </script>
+
+<template>
+  <li
+    class="mb-1 list-none dropdown-menu__item"
+    :class="{
+      'is-disabled': disabled,
+    }"
+    :tabindex="disabled ? null : -1"
+    :aria-disabled="disabled"
+  >
+    <slot />
+  </li>
+</template>
+
 <style lang="scss" scoped>
 .dropdown-menu__item {
-  list-style: none;
-
   ::v-deep {
     a,
     .button {
-      width: 100%;
-      text-align: left;
-      color: var(--s-700);
-      white-space: nowrap;
-      display: inline-flex;
-      padding: var(--space-small);
-      padding-top: var(--space-small);
-      padding-bottom: var(--space-small);
-      border-radius: var(--border-radius-normal);
-
-      &:hover {
-        background: var(--color-background);
-      }
-
-      &:focus {
-        background: var(--color-background);
-      }
+      @apply inline-flex whitespace-nowrap w-full text-left rtl:text-right;
     }
+  }
+}
+
+// A hacky fix to remove the background that came from the foundation styles node module file
+// Can be removed once we remove the foundation styles node module
+.dropdown.menu {
+  // Top-level item
+  > li > a {
+    background: transparent;
+    padding: 4px 10.8px;
   }
 }
 </style>

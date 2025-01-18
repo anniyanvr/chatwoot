@@ -1,5 +1,6 @@
 import * as MutationHelpers from 'shared/helpers/vuex/mutationHelpers';
 import types from '../mutation-types';
+import { uploadFile } from 'dashboard/helper/uploadHelper';
 import AutomationAPI from '../../api/automation';
 
 export const state = {
@@ -14,7 +15,7 @@ export const state = {
 
 export const getters = {
   getAutomations(_state) {
-    return _state.records;
+    return _state.records.sort((a1, a2) => a1.id - a2.id);
   },
   getUIFlags(_state) {
     return _state.uiFlags;
@@ -75,6 +76,10 @@ export const actions = {
     } finally {
       commit(types.SET_AUTOMATION_UI_FLAG, { isCloning: false });
     }
+  },
+  uploadAttachment: async (_, file) => {
+    const { blobId } = await uploadFile(file);
+    return blobId;
   },
 };
 

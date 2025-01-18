@@ -10,6 +10,8 @@
 #  attribute_model        :integer          default("conversation_attribute")
 #  attribute_values       :jsonb
 #  default_value          :integer
+#  regex_cue              :string
+#  regex_pattern          :string
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
 #  account_id             :bigint
@@ -34,4 +36,16 @@ class CustomAttributeDefinition < ApplicationRecord
   enum attribute_display_type: { text: 0, number: 1, currency: 2, percent: 3, link: 4, date: 5, list: 6, checkbox: 7 }
 
   belongs_to :account
+  after_update :update_widget_pre_chat_custom_fields
+  after_destroy :sync_widget_pre_chat_custom_fields
+
+  private
+
+  def sync_widget_pre_chat_custom_fields
+    ::Inboxes::SyncWidgetPreChatCustomFieldsJob.perform_later(account, attribute_key)
+  end
+
+  def update_widget_pre_chat_custom_fields
+    ::Inboxes::UpdateWidgetPreChatCustomFieldsJob.perform_later(account, self)
+  end
 end

@@ -6,39 +6,19 @@
     "LIST": {
       "404": "ഈ ഗ്രൂപ്പിൽ സജീവ സംഭാഷണങ്ങളൊന്നുമില്ല."
     },
+    "FAILED_TO_SEND": "Failed to send",
     "TAB_HEADING": "സംഭാഷണങ്ങൾ",
     "MENTION_HEADING": "പരാമർശിക്കുന്നു",
+    "UNATTENDED_HEADING": "Unattended",
     "SEARCH": {
       "INPUT": "ആളുകൾ, ചാറ്റുകൾ, ക്യാൻഡ് മറുപടികൾ എന്നിവയ്ക്കായി തിരയുക .."
     },
     "FILTER_ALL": "എല്ലാം",
-    "STATUS_TABS": [
-      {
-        "NAME": "സജീവം",
-        "KEY": "openCount"
-      },
-      {
-        "NAME": "പരിഹരിച്ചത്",
-        "KEY": "allConvCount"
-      }
-    ],
-    "ASSIGNEE_TYPE_TABS": [
-      {
-        "NAME": "എന്റേത്",
-        "KEY": "me",
-        "COUNT_KEY": "mineCount"
-      },
-      {
-        "NAME": "നിയുക്തമാക്കാത്തത്",
-        "KEY": "unassigned",
-        "COUNT_KEY": "unAssignedCount"
-      },
-      {
-        "NAME": "എല്ലാം",
-        "KEY": "all",
-        "COUNT_KEY": "allCount"
-      }
-    ],
+    "ASSIGNEE_TYPE_TABS": {
+      "me": "എന്റേത്",
+      "unassigned": "നിയുക്തമാക്കാത്തത്",
+      "all": "എല്ലാം"
+    },
     "CHAT_STATUS_FILTER_ITEMS": {
       "open": {
         "TEXT": "സജീവം"
@@ -51,6 +31,51 @@
       },
       "snoozed": {
         "TEXT": "സ്‌നൂസ് ചെയ്തു"
+      },
+      "all": {
+        "TEXT": "എല്ലാം"
+      }
+    },
+    "VIEW_FILTER": "കാണുക",
+    "SORT_TOOLTIP_LABEL": "Sort conversations",
+    "CHAT_SORT": {
+      "STATUS": "സ്റ്റാറ്റസ്",
+      "ORDER_BY": "Order by"
+    },
+    "CHAT_TIME_STAMP": {
+      "CREATED": {
+        "LATEST": "Created",
+        "OLDEST": "Created at:"
+      },
+      "LAST_ACTIVITY": {
+        "NOT_ACTIVE": "Last activity:",
+        "ACTIVE": "Last activity"
+      }
+    },
+    "SORT_ORDER_ITEMS": {
+      "last_activity_at_asc": {
+        "TEXT": "Last activity: Oldest first"
+      },
+      "last_activity_at_desc": {
+        "TEXT": "Last activity: Newest first"
+      },
+      "created_at_desc": {
+        "TEXT": "Created at: Newest first"
+      },
+      "created_at_asc": {
+        "TEXT": "Created at: Oldest first"
+      },
+      "priority_desc": {
+        "TEXT": "Priority: Highest first"
+      },
+      "priority_asc": {
+        "TEXT": "Priority: Lowest first"
+      },
+      "waiting_since_asc": {
+        "TEXT": "Pending Response: Longest first"
+      },
+      "waiting_since_desc": {
+        "TEXT": "Pending Response: Shortest first"
       }
     },
     "ATTACHMENTS": {
@@ -69,8 +94,29 @@
       "location": {
         "CONTENT": "സ്ഥാനം"
       },
+      "ig_reel": {
+        "CONTENT": "Instagram Reel"
+      },
       "fallback": {
         "CONTENT": "ഒരു യു. ആർ. എൽ പങ്കിട്ടു"
+      }
+    },
+    "CHAT_SORT_BY_FILTER": {
+      "TITLE": "Sort conversation",
+      "DROPDOWN_TITLE": "Sort by",
+      "ITEMS": {
+        "LATEST": {
+          "NAME": "Last activity at",
+          "LABEL": "Last activity"
+        },
+        "CREATED_AT": {
+          "NAME": "എന്ന സ്ഥലത്ത് സൃഷ്ടിച്ചു",
+          "LABEL": "എന്ന സ്ഥലത്ത് സൃഷ്ടിച്ചു"
+        },
+        "LAST_USER_MESSAGE_AT": {
+          "NAME": "Last user message at",
+          "LABEL": "Last message"
+        }
       }
     },
     "RECEIVED_VIA_EMAIL": "ഇമെയിൽ വഴി ലഭിച്ചു",
@@ -78,9 +124,13 @@
     "REPLY_TO_TWEET": "ഈ ട്വീറ്റിന് മറുപടി നൽകുക",
     "LINK_TO_STORY": "Go to instagram story",
     "SENT": "വിജയകരമായി അയച്ചു",
+    "READ": "Read successfully",
+    "DELIVERED": "Delivered successfully",
     "NO_MESSAGES": "സന്ദേശങ്ങളൊന്നുമില്ല",
     "NO_CONTENT": "ഉള്ളടക്കമൊന്നും ലഭ്യമല്ല",
     "HIDE_QUOTED_TEXT": "ഉദ്ധരിച്ച വാചകം മറയ്ക്കുക",
-    "SHOW_QUOTED_TEXT": "ഉദ്ധരിച്ച വാചകം കാണിക്കുക"
+    "SHOW_QUOTED_TEXT": "ഉദ്ധരിച്ച വാചകം കാണിക്കുക",
+    "MESSAGE_READ": "Read",
+    "SENDING": "Sending"
   }
 }

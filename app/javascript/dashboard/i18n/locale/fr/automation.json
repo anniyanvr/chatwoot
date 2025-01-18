@@ -1,9 +1,10 @@
 {
   "AUTOMATION": {
     "HEADER": "Automatisations",
+    "DESCRIPTION": "Automation can replace and streamline existing processes that require manual effort, such as adding labels and assigning conversations to the most suitable agent. This allows the team to focus on their strengths while reducing time spent on routine tasks.",
+    "LEARN_MORE": "Learn more about automation",
     "HEADER_BTN_TXT": "Ajouter une règle d'automatisation",
     "LOADING": "Récupération des règles d'automatisation",
-    "SIDEBAR_TXT": "<p><b>Règles d'automatisation</b> <p>L'automatisation peut remplacer et automatiser les processus existants qui nécessitent des efforts manuels. Vous pouvez faire beaucoup de choses avec l'automatisation, y compris ajouter des étiquettes et assigner des conversations au meilleur agent. Ainsi, l'équipe se concentre sur ce qu'elle fait de mieux et passe plus peu de temps sur les tâches manuelles.</p>",
     "ADD": {
       "TITLE": "Ajouter une règle d'automatisation",
       "SUBMIT": "Créer",
@@ -39,12 +40,12 @@
       }
     },
     "LIST": {
-      "TABLE_HEADER": [
-        "Nom",
-        "Description",
-        "Actif",
-        "Créé le"
-      ],
+      "TABLE_HEADER": {
+        "NAME": "Nom",
+        "DESCRIPTION": "Description",
+        "ACTIVE": "Actif",
+        "CREATED_ON": "Créé le"
+      },
       "404": "Aucune règle d'automatisation trouvée"
     },
     "DELETE": {
@@ -86,22 +87,44 @@
       "RESET_MESSAGE": "Changer le type d'événement réinitialisera les conditions et les événements que vous avez ajoutés ci-dessous"
     },
     "CONDITION": {
-      "DELETE_MESSAGE": "Vous devez avoir au moins une condition pour enregistrer"
+      "DELETE_MESSAGE": "Vous devez avoir au moins une condition pour enregistrer",
+      "CONTACT_CUSTOM_ATTR_LABEL": "Attributs personnalisés des contacts",
+      "CONVERSATION_CUSTOM_ATTR_LABEL": "Attributs personnalisés de la conversation"
     },
     "ACTION": {
-      "DELETE_MESSAGE": "Vous devez avoir au moins une action pour enregistrer"
+      "DELETE_MESSAGE": "Vous devez avoir au moins une action pour enregistrer",
+      "TEAM_MESSAGE_INPUT_PLACEHOLDER": "Saisissez votre message ici",
+      "TEAM_DROPDOWN_PLACEHOLDER": "Sélectionner une équipe",
+      "EMAIL_INPUT_PLACEHOLDER": "Enter email",
+      "URL_INPUT_PLACEHOLDER": "Enter URL"
     },
     "TOGGLE": {
-      "ACTIVATION_TITLE": "Activate Automation Rule",
-      "DEACTIVATION_TITLE": "Deactivate Automation Rule",
-      "ACTIVATION_DESCRIPTION": "This action will activate the automation rule '{automationName}'. Are you sure you want to proceed?",
-      "DEACTIVATION_DESCRIPTION": "This action will deactivate the automation rule '{automationName}'. Are you sure you want to proceed?",
-      "ACTIVATION_SUCCESFUL": "Automation Rule Activated Successfully",
-      "DEACTIVATION_SUCCESFUL": "Automation Rule Deactivated Successfully",
-      "ACTIVATION_ERROR": "Could not Activate Automation, Please try again later",
-      "DEACTIVATION_ERROR": "Could not Deactivate Automation, Please try again later",
+      "ACTIVATION_TITLE": "Activer la règle d'automatisation",
+      "DEACTIVATION_TITLE": "Activer la règle d'automatisation",
+      "ACTIVATION_DESCRIPTION": "Cette action activera la règle d'automatisation '{automationName}'. Êtes-vous sur de vouloir continuer?",
+      "DEACTIVATION_DESCRIPTION": "Cette action activera la règle d'automatisation '{automationName}'. Êtes-vous sur de vouloir continuer?",
+      "ACTIVATION_SUCCESFUL": "Règle d'automatisation activée avec succès",
+      "DEACTIVATION_SUCCESFUL": "Règle d'automatisation désactivée avec succès",
+      "ACTIVATION_ERROR": "Impossible d'activer l'automatisation, veuillez réessayer plus tard",
+      "DEACTIVATION_ERROR": "Impossible de désactiver l'automatisation, veuillez réessayer plus tard",
       "CONFIRMATION_LABEL": "Oui",
       "CANCEL_LABEL": "Non"
+    },
+    "ATTACHMENT": {
+      "UPLOAD_ERROR": "Impossible d'envoyer la pièce jointe, veuillez réessayer",
+      "LABEL_IDLE": "Charger une pièce jointe",
+      "LABEL_UPLOADING": "Téléversement...",
+      "LABEL_UPLOADED": "Téléchargé avec succès",
+      "LABEL_UPLOAD_FAILED": "Échec de l'envoi"
+    },
+    "ERRORS": {
+      "ATTRIBUTE_KEY_REQUIRED": "Attribute key is required",
+      "FILTER_OPERATOR_REQUIRED": "Filter operator is required",
+      "VALUE_REQUIRED": "La valeur est requise",
+      "VALUE_MUST_BE_BETWEEN_1_AND_998": "Value must be between 1 and 998",
+      "ACTION_PARAMETERS_REQUIRED": "Action parameters are required",
+      "ATLEAST_ONE_CONDITION_REQUIRED": "At least one condition is required",
+      "ATLEAST_ONE_ACTION_REQUIRED": "At least one action is required"
     }
   }
 }

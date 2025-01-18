@@ -1,9 +1,11 @@
 {
   "REPORT": {
-    "HEADER": "Visão geral",
+    "HEADER": "Conversas",
     "LOADING_CHART": "Carregando dados do gráfico...",
     "NO_ENOUGH_DATA": "Não existem dados suficientes para gerar o relatório. Tente novamente mais tarde.",
     "DOWNLOAD_AGENT_REPORTS": "Baixar relatórios de agentes",
+    "DATA_FETCHING_FAILED": "Falha ao buscar dados, tente novamente mais tarde.",
+    "SUMMARY_FETCHING_FAILED": "Não foi possível obter o resumo. Tente novamente mais tarde.",
     "METRICS": {
       "CONVERSATIONS": {
         "NAME": "Conversas",
@@ -18,49 +20,55 @@
         "DESC": "( Total )"
       },
       "FIRST_RESPONSE_TIME": {
-        "NAME": "Primeira resposta",
-        "DESC": "(Média)"
+        "NAME": "Tempo da Primeira Resposta",
+        "DESC": "(Média)",
+        "INFO_TEXT": "Número total de conversas utilizadas para computação:",
+        "TOOLTIP_TEXT": "O tempo da primeira resposta é de {metricValue} (com base em {conversationCount} conversas)"
       },
       "RESOLUTION_TIME": {
         "NAME": "Tempo de resolução",
-        "DESC": "(Média)"
+        "DESC": "(Média)",
+        "INFO_TEXT": "Número total de conversas utilizadas para computação:",
+        "TOOLTIP_TEXT": "O tempo de resolução é de {metricValue} (com base em {conversationCount} conversas)"
       },
       "RESOLUTION_COUNT": {
         "NAME": "Contagem de Resolução",
         "DESC": "( Total )"
+      },
+      "BOT_RESOLUTION_COUNT": {
+        "NAME": "Contagem de Resolução",
+        "DESC": "( Total )"
+      },
+      "BOT_HANDOFF_COUNT": {
+        "NAME": "Contagem de transferências",
+        "DESC": "( Total )"
+      },
+      "REPLY_TIME": {
+        "NAME": "Tempo de espera do cliente",
+        "TOOLTIP_TEXT": "O tempo de espera é {metricValue} (com base em {conversationCount} respostas)",
+        "DESC": ""
       }
     },
-    "DATE_RANGE": [
-      {
-        "id": 0,
-        "name": "Últimos 7 dias"
-      },
-      {
-        "id": 1,
-        "name": "Últimos 30 dias"
-      },
-      {
-        "id": 2,
-        "name": "Últimos 3 meses"
-      },
-      {
-        "id": 3,
-        "name": "Últimos 6 meses"
-      },
-      {
-        "id": 4,
-        "name": "Ano passado"
-      },
-      {
-        "id": 5,
-        "name": "Intervalo de datas personalizado"
-      }
-    ],
+    "DATE_RANGE_OPTIONS": {
+      "LAST_7_DAYS": "Últimos 7 dias",
+      "LAST_30_DAYS": "Últimos 30 dias",
+      "LAST_3_MONTHS": "Últimos 3 meses",
+      "LAST_6_MONTHS": "Últimos 6 meses",
+      "LAST_YEAR": "Ano passado",
+      "CUSTOM_DATE_RANGE": "Intervalo de datas personalizado"
+    },
     "CUSTOM_DATE_RANGE": {
       "CONFIRM": "Aplicar",
       "PLACEHOLDER": "Selecionar intervalo de datas"
     },
     "GROUP_BY_FILTER_DROPDOWN_LABEL": "Agrupar por",
+    "DURATION_FILTER_LABEL": "Duração",
+    "GROUPING_OPTIONS": {
+      "DAY": "Dia",
+      "WEEK": "Semana",
+      "MONTH": "Mês",
+      "YEAR": "Ano"
+    },
     "GROUP_BY_DAY_OPTIONS": [
       {
         "id": 1,
@@ -103,12 +111,16 @@
       {
         "id": 3,
         "groupBy": "Mês"
-      },
-      {
-        "id": 4,
-        "groupBy": "Ano"
       }
-    ]
+    ],
+    "BUSINESS_HOURS": "Horários de funcionamento",
+    "FILTER_ACTIONS": {
+      "CLEAR_FILTER": "Limpar filtros",
+      "EMPTY_LIST": "Nenhum resultado encontrado"
+    },
+    "PAGINATION": {
+      "RESULTS": "Exibindo {start} - {end} de {total} resultados "
+    }
   },
   "AGENT_REPORTS": {
     "HEADER": "Visão Geral de Agentes",
@@ -130,12 +142,16 @@
         "DESC": "( Total )"
       },
       "FIRST_RESPONSE_TIME": {
-        "NAME": "Primeira resposta",
-        "DESC": "(Média)"
+        "NAME": "Tempo da Primeira Resposta",
+        "DESC": "(Média)",
+        "INFO_TEXT": "Número total de conversas utilizadas para computação:",
+        "TOOLTIP_TEXT": "O tempo da primeira resposta é de {metricValue} (com base em {conversationCount} conversas)"
       },
       "RESOLUTION_TIME": {
         "NAME": "Tempo de resolução",
-        "DESC": "(Média)"
+        "DESC": "(Média)",
+        "INFO_TEXT": "Número total de conversas utilizadas para computação:",
+        "TOOLTIP_TEXT": "O tempo de resolução é de {metricValue} (com base em {conversationCount} conversas)"
       },
       "RESOLUTION_COUNT": {
         "NAME": "Contagem de Resolução",
@@ -193,12 +209,16 @@
         "DESC": "( Total )"
       },
       "FIRST_RESPONSE_TIME": {
-        "NAME": "Primeira resposta",
-        "DESC": "(Média)"
+        "NAME": "Tempo da Primeira Resposta",
+        "DESC": "(Média)",
+        "INFO_TEXT": "Número total de conversas utilizadas para computação:",
+        "TOOLTIP_TEXT": "O tempo da primeira resposta é de {metricValue} (com base em {conversationCount} conversas)"
       },
       "RESOLUTION_TIME": {
         "NAME": "Tempo de resolução",
-        "DESC": "(Média)"
+        "DESC": "(Média)",
+        "INFO_TEXT": "Número total de conversas utilizadas para computação:",
+        "TOOLTIP_TEXT": "O tempo de resolução é de {metricValue} (com base em {conversationCount} conversas)"
       },
       "RESOLUTION_COUNT": {
         "NAME": "Contagem de Resolução",
@@ -256,12 +276,16 @@
         "DESC": "( Total )"
       },
       "FIRST_RESPONSE_TIME": {
-        "NAME": "Primeira resposta",
-        "DESC": "(Média)"
+        "NAME": "Tempo da Primeira Resposta",
+        "DESC": "(Média)",
+        "INFO_TEXT": "Número total de conversas utilizadas para computação:",
+        "TOOLTIP_TEXT": "O tempo da primeira resposta é de {metricValue} (com base em {conversationCount} conversas)"
       },
       "RESOLUTION_TIME": {
         "NAME": "Tempo de resolução",
-        "DESC": "(Média)"
+        "DESC": "(Média)",
+        "INFO_TEXT": "Número total de conversas utilizadas para computação:",
+        "TOOLTIP_TEXT": "O tempo de resolução é de {metricValue} (com base em {conversationCount} conversas)"
       },
       "RESOLUTION_COUNT": {
         "NAME": "Contagem de Resolução",
@@ -319,12 +343,16 @@
         "DESC": "( Total )"
       },
       "FIRST_RESPONSE_TIME": {
-        "NAME": "Primeira resposta",
-        "DESC": "(Média)"
+        "NAME": "Tempo da Primeira Resposta",
+        "DESC": "(Média)",
+        "INFO_TEXT": "Número total de conversas utilizadas para computação:",
+        "TOOLTIP_TEXT": "O tempo da primeira resposta é de {metricValue} (com base em {conversationCount} conversas)"
       },
       "RESOLUTION_TIME": {
         "NAME": "Tempo de resolução",
-        "DESC": "(Média)"
+        "DESC": "(Média)",
+        "INFO_TEXT": "Número total de conversas utilizadas para computação:",
+        "TOOLTIP_TEXT": "O tempo de resolução é de {metricValue} (com base em {conversationCount} conversas)"
       },
       "RESOLUTION_COUNT": {
         "NAME": "Contagem de Resolução",
@@ -365,6 +393,8 @@
   "CSAT_REPORTS": {
     "HEADER": "Relatórios CSAT",
     "NO_RECORDS": "Não há respostas de pesquisa em CSAT disponíveis.",
+    "DOWNLOAD": "Baixar relatórios de CSAT",
+    "DOWNLOAD_FAILED": "Falha ao baixar Relatórios CSAT",
     "FILTERS": {
       "AGENTS": {
         "PLACEHOLDER": "Escolher agentes"
@@ -391,6 +421,122 @@
         "LABEL": "Taxa de resposta",
         "TOOLTIP": "Número total de respostas / Número total de mensagens CSAT de pesquisa enviadas * 100"
       }
+    }
+  },
+  "BOT_REPORTS": {
+    "HEADER": "Relatórios do Bot",
+    "METRIC": {
+      "TOTAL_CONVERSATIONS": {
+        "LABEL": "Nº de Conversas",
+        "TOOLTIP": "Número total de conversas tratadas pelo bot"
+      },
+      "TOTAL_RESPONSES": {
+        "LABEL": "Total de respostas",
+        "TOOLTIP": "Número total de respostas enviadas pelo bot"
+      },
+      "RESOLUTION_RATE": {
+        "LABEL": "Tempo de resolução",
+        "TOOLTIP": "Número total de conversas resolvidas pelo bot / número total de conversas manipuladas pelo bot * 100"
+      },
+      "HANDOFF_RATE": {
+        "LABEL": "Taxa de entrega",
+        "TOOLTIP": "Número total de conversas entregues a agentes / número total de conversas mantidas pelo bot * 100"
+      }
+    }
+  },
+  "OVERVIEW_REPORTS": {
+    "HEADER": "Visão geral",
+    "LIVE": "Disponível",
+    "ACCOUNT_CONVERSATIONS": {
+      "HEADER": "Conversas Abertas",
+      "LOADING_MESSAGE": "Carregando métricas de conversa...",
+      "OPEN": "Abertas",
+      "UNATTENDED": "Não atendidas",
+      "UNASSIGNED": "Não atribuída",
+      "PENDING": "Pendente"
+    },
+    "CONVERSATION_HEATMAP": {
+      "HEADER": "Tráfego de conversa",
+      "NO_CONVERSATIONS": "Não há conversas",
+      "CONVERSATION": "{count} conversa",
+      "CONVERSATIONS": "{count} conversas",
+      "DOWNLOAD_REPORT": "Baixar relatório"
+    },
+    "AGENT_CONVERSATIONS": {
+      "HEADER": "Conversas por agentes",
+      "LOADING_MESSAGE": "Carregando métricas de agente...",
+      "NO_AGENTS": "Não há conversas por agentes",
+      "TABLE_HEADER": {
+        "AGENT": "Agente",
+        "OPEN": "Abrir",
+        "UNATTENDED": "Não atendidas",
+        "STATUS": "SItuação"
+      }
+    },
+    "AGENT_STATUS": {
+      "HEADER": "Status do agente",
+      "ONLINE": "Disponível",
+      "BUSY": "Ocupado",
+      "OFFLINE": "Desconectado"
+    }
+  },
+  "DAYS_OF_WEEK": {
+    "SUNDAY": "Domingo",
+    "MONDAY": "Segunda-Feira",
+    "TUESDAY": "Terça-feira",
+    "WEDNESDAY": "Quarta-feira",
+    "THURSDAY": "Quinta-feira",
+    "FRIDAY": "Sexta-feira",
+    "SATURDAY": "Sábado"
+  },
+  "SLA_REPORTS": {
+    "HEADER": "Relatórios SLA",
+    "NO_RECORDS": "Conversas com SLA aplicadas não estão disponíveis.",
+    "LOADING": "Carregando dados de SLA...",
+    "DOWNLOAD_SLA_REPORTS": "Baixar relatórios de SLA",
+    "DOWNLOAD_FAILED": "Falha ao baixar os relatórios de SLA",
+    "DROPDOWN": {
+      "ADD_FIlTER": "Adicionar filtro",
+      "CLEAR_ALL": "Limpar tudo",
+      "CLEAR_FILTER": "Limpar filtros",
+      "EMPTY_LIST": "Nenhum resultado encontrado",
+      "NO_FILTER": "Não há filtros disponíveis",
+      "SEARCH": "Filtro de pesquisa",
+      "INPUT_PLACEHOLDER": {
+        "SLA": "Nome do SLA",
+        "AGENTS": "Nome do Agente",
+        "INBOXES": "Nome da Caixa de Entrada",
+        "LABELS": "Nome do marcador",
+        "TEAMS": "Nome do departamento"
+      },
+      "SLA": "Política SLA",
+      "INBOXES": "Caixa de Entrada",
+      "AGENTS": "Agente",
+      "LABELS": "Nome do campo",
+      "TEAMS": "Times"
+    },
+    "WITH": "com",
+    "METRICS": {
+      "HIT_RATE": {
+        "LABEL": "Taxa de acerto",
+        "TOOLTIP": "Porcentagem de SLAs criados foram concluídos com êxito"
+      },
+      "NO_OF_MISSES": {
+        "LABEL": "Número de Erros",
+        "TOOLTIP": "Total de SLA perdidos em um determinado período"
+      },
+      "NO_OF_CONVERSATIONS": {
+        "LABEL": "Nº de Conversas",
+        "TOOLTIP": "Número total de conversas com SLA"
+      }
+    },
+    "TABLE": {
+      "HEADER": {
+        "POLICY": "Política",
+        "CONVERSATION": "Conversas",
+        "AGENT": "Agente"
+      },
+      "VIEW_DETAILS": "Ver detalhes"
     }
   }
 }

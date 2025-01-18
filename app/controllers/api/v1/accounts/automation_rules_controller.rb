@@ -6,9 +6,12 @@ class Api::V1::Accounts::AutomationRulesController < Api::V1::Accounts::BaseCont
     @automation_rules = Current.account.automation_rules
   end
 
+  def show; end
+
   def create
     @automation_rule = Current.account.automation_rules.new(automation_rules_permit)
     @automation_rule.actions = params[:actions]
+    @automation_rule.conditions = params[:conditions]
 
     render json: { error: @automation_rule.errors.messages }, status: :unprocessable_entity and return unless @automation_rule.valid?
 
@@ -17,12 +20,15 @@ class Api::V1::Accounts::AutomationRulesController < Api::V1::Accounts::BaseCont
     @automation_rule
   end
 
-  def show; end
-
   def update
-    @automation_rule.update(automation_rules_permit)
-    process_attachments
-    @automation_rule
+    ActiveRecord::Base.transaction do
+      automation_rule_update
+      process_attachments
+
+    rescue StandardError => e
+      Rails.logger.error e
+      render json: { error: @automation_rule.errors.messages }.to_json, status: :unprocessable_entity
+    end
   end
 
   def destroy
@@ -33,24 +39,34 @@ class Api::V1::Accounts::AutomationRulesController < Api::V1::Accounts::BaseCont
   def clone
     automation_rule = Current.account.automation_rules.find_by(id: params[:automation_rule_id])
     new_rule = automation_rule.dup
-    new_rule.save
+    new_rule.save!
     @automation_rule = new_rule
+  end
+
+  def process_attachments
+    actions = @automation_rule.actions.filter_map { |k, _v| k if k['action_name'] == 'send_attachment' }
+    return if actions.blank?
+
+    actions.each do |action|
+      blob_id = action['action_params']
+      blob = ActiveStorage::Blob.find_by(id: blob_id)
+      @automation_rule.files.attach(blob)
+    end
   end
 
   private
 
-  def process_attachments
-    return if params[:attachments].blank?
-
-    params[:attachments].each do |uploaded_attachment|
-      @automation_rule.files.attach(uploaded_attachment)
-    end
+  def automation_rule_update
+    @automation_rule.update!(automation_rules_permit)
+    @automation_rule.actions = params[:actions] if params[:actions]
+    @automation_rule.conditions = params[:conditions] if params[:conditions]
+    @automation_rule.save!
   end
 
   def automation_rules_permit
     params.permit(
       :name, :description, :event_name, :account_id, :active,
-      conditions: [:attribute_key, :filter_operator, :query_operator, { values: [] }],
+      conditions: [:attribute_key, :filter_operator, :query_operator, :custom_attribute_type, { values: [] }],
       actions: [:action_name, { action_params: [] }]
     )
   end

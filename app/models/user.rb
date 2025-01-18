@@ -48,6 +48,7 @@ class User < ApplicationRecord
   include Rails.application.routes.url_helpers
   include Reportable
   include SsoAuthenticatable
+  include UserAttributeHelpers
 
   devise :database_authenticatable,
          :registerable,
@@ -56,7 +57,8 @@ class User < ApplicationRecord
          :trackable,
          :validatable,
          :confirmable,
-         :password_has_required_content
+         :password_has_required_content,
+         :omniauthable, omniauth_providers: [:google_oauth2]
 
   # TODO: remove in a future version once online status is moved to account users
   # remove the column availability from users
@@ -66,23 +68,25 @@ class User < ApplicationRecord
   # work because :validatable in devise overrides this.
   # validates_uniqueness_of :email, scope: :account_id
 
-  validates :email, :name, presence: true
-  validates_length_of :name, minimum: 1, maximum: 255
+  validates :email, presence: true
 
   has_many :account_users, dependent: :destroy_async
   has_many :accounts, through: :account_users
   accepts_nested_attributes_for :account_users
 
-  has_many :assigned_conversations, foreign_key: 'assignee_id', class_name: 'Conversation', dependent: :nullify
+  has_many :assigned_conversations, foreign_key: 'assignee_id', class_name: 'Conversation', dependent: :nullify, inverse_of: :assignee
   alias_attribute :conversations, :assigned_conversations
-  has_many :csat_survey_responses, foreign_key: 'assigned_agent_id', dependent: :nullify
+  has_many :csat_survey_responses, foreign_key: 'assigned_agent_id', dependent: :nullify, inverse_of: :assigned_agent
+  has_many :conversation_participants, dependent: :destroy_async
+  has_many :participating_conversations, through: :conversation_participants, source: :conversation
 
   has_many :inbox_members, dependent: :destroy_async
   has_many :inboxes, through: :inbox_members, source: :inbox
-  has_many :messages, as: :sender
+  has_many :messages, as: :sender, dependent: :nullify
   has_many :invitees, through: :account_users, class_name: 'User', foreign_key: 'inviter_id', source: :inviter, dependent: :nullify
 
   has_many :custom_filters, dependent: :destroy_async
+  has_many :dashboard_apps, dependent: :nullify
   has_many :mentions, dependent: :destroy_async
   has_many :notes, dependent: :nullify
   has_many :notification_settings, dependent: :destroy_async
@@ -90,10 +94,24 @@ class User < ApplicationRecord
   has_many :notifications, dependent: :destroy_async
   has_many :team_members, dependent: :destroy_async
   has_many :teams, through: :team_members
+  has_many :articles, foreign_key: 'author_id', dependent: :nullify, inverse_of: :author
+  has_many :portal_members, class_name: :PortalMember, dependent: :destroy_async
+  has_many :portals, through: :portal_members, source: :portal,
+                     class_name: :Portal,
+                     dependent: :nullify
+  # rubocop:disable Rails/HasManyOrHasOneDependent
+  # we are handling this in `remove_macros` callback
+  has_many :macros, foreign_key: 'created_by_id', inverse_of: :created_by
+  # rubocop:enable Rails/HasManyOrHasOneDependent
 
   before_validation :set_password_and_uid, on: :create
+  after_destroy :remove_macros
 
   scope :order_by_full_name, -> { order('lower(name) ASC') }
+
+  before_validation do
+    self.email = email.try(:downcase)
+  end
 
   def send_devise_notification(notification, *args)
     devise_mailer.with(account: Current.account).send(notification, self, *args).deliver_later
@@ -103,58 +121,8 @@ class User < ApplicationRecord
     self.uid = email
   end
 
-  def active_account_user
-    account_users.order(active_at: :desc)&.first
-  end
-
-  def current_account_user
-    # We want to avoid subsequent queries in case where the association is preloaded.
-    # using where here will trigger n+1 queries.
-    account_users.find { |ac_usr| ac_usr.account_id == Current.account.id } if Current.account
-  end
-
-  def available_name
-    self[:display_name].presence || name
-  end
-
-  # Used internally for Chatwoot in Chatwoot
-  def hmac_identifier
-    hmac_key = GlobalConfig.get('CHATWOOT_INBOX_HMAC_KEY')['CHATWOOT_INBOX_HMAC_KEY']
-    return OpenSSL::HMAC.hexdigest('sha256', hmac_key, email) if hmac_key.present?
-
-    ''
-  end
-
-  def account
-    current_account_user&.account
-  end
-
   def assigned_inboxes
     administrator? ? Current.account.inboxes : inboxes.where(account_id: Current.account.id)
-  end
-
-  def administrator?
-    current_account_user&.administrator?
-  end
-
-  def agent?
-    current_account_user&.agent?
-  end
-
-  def role
-    current_account_user&.role
-  end
-
-  def availability_status
-    current_account_user&.availability_status
-  end
-
-  def auto_offline
-    current_account_user&.auto_offline
-  end
-
-  def inviter
-    current_account_user&.inviter
   end
 
   def serializable_hash(options = nil)
@@ -188,10 +156,16 @@ class User < ApplicationRecord
     mutations_from_database.changed?('email')
   end
 
-  def notifications_meta(account_id)
-    {
-      unread_count: notifications.where(account_id: account_id, read_at: nil).count,
-      count: notifications.where(account_id: account_id).count
-    }
+  def self.from_email(email)
+    find_by(email: email&.downcase)
+  end
+
+  private
+
+  def remove_macros
+    macros.personal.destroy_all
   end
 end
+
+User.include_mod_with('Audit::User')
+User.include_mod_with('Concerns::User')

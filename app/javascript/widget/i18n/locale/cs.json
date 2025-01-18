@@ -8,8 +8,8 @@
       "SUBMIT": "Odeslat"
     },
     "MESSAGE_BUBBLE": {
-      "RETRY": "Send message again",
-      "ERROR_MESSAGE": "Couldn't send, try again"
+      "RETRY": "Odeslat zprávu znovu",
+      "ERROR_MESSAGE": "Odeslání se nezdařilo, zkuste to znovu"
     }
   },
   "TEAM_AVAILABILITY": {
@@ -19,12 +19,24 @@
   "REPLY_TIME": {
     "IN_A_FEW_MINUTES": "Většinou odpovíme během pár minut",
     "IN_A_FEW_HOURS": "Většinou odpovíme během pár hodin",
-    "IN_A_DAY": "Obvykle odpoví za den"
+    "IN_A_DAY": "Obvykle odpoví za den",
+    "BACK_IN": "Budem online zase"
   },
+  "DAY_NAMES": [
+    "Neděle",
+    "Pondělí",
+    "Úterý",
+    "Středa",
+    "Čtvrtek",
+    "Pátek",
+    "Sobota"
+  ],
   "START_CONVERSATION": "Zahájit konverzaci",
-  "END_CONVERSATION": "End Conversation",
-  "CONTINUE_CONVERSATION": "Continue conversation",
+  "END_CONVERSATION": "Ukončit konverzaci",
+  "CONTINUE_CONVERSATION": "Pokračovat v konverzaci",
+  "YOU": "Vy",
   "START_NEW_CONVERSATION": "Zahájit novou konverzaci",
+  "VIEW_UNREAD_MESSAGES": "Máte nepřečtené zprávy",
   "UNREAD_VIEW": {
     "VIEW_MESSAGES_BUTTON": "Zobrazit nové zprávy",
     "CLOSE_MESSAGES_BUTTON": "Zavřít",
@@ -44,12 +56,22 @@
       "FULL_NAME": {
         "LABEL": "Celé jméno",
         "PLACEHOLDER": "Zadejte své celé jméno",
-        "ERROR": "Je vyžadováno celé jméno"
+        "REQUIRED_ERROR": "Je vyžadováno celé jméno"
       },
       "EMAIL_ADDRESS": {
         "LABEL": "E-mailová adresa",
         "PLACEHOLDER": "Zadejte prosím Váš e-mail",
-        "ERROR": "Neplatná e-mailová adresa"
+        "REQUIRED_ERROR": "E-mailová adresa je vyžadována",
+        "VALID_ERROR": "Zadejte prosím platnou e-mailovou adresu"
+      },
+      "PHONE_NUMBER": {
+        "LABEL": "Telefonní číslo",
+        "PLACEHOLDER": "Zadejte prosím Vaše telefonní číslo",
+        "REQUIRED_ERROR": "Telefonní číslo je vyžadováno",
+        "DIAL_CODE_VALID_ERROR": "Vyberte prosím kód země",
+        "VALID_ERROR": "Zadejte prosím platné telefonní číslo",
+        "DROPDOWN_EMPTY": "Žádné výsledky",
+        "DROPDOWN_SEARCH": "Vyhledat zemi"
       },
       "MESSAGE": {
         "LABEL": "Zpráva",
@@ -57,13 +79,21 @@
         "ERROR": "Zpráva je příliš krátká"
       }
     },
-    "CAMPAIGN_HEADER": "Please provide your name and email before starting the conversation"
+    "CAMPAIGN_HEADER": "Zadejte své jméno a e-mail před zahájením konverzace",
+    "IS_REQUIRED": "je vyžadováno",
+    "REQUIRED": "Povinné",
+    "REGEX_ERROR": "Zadejte prosím platnou hodnotu"
   },
   "FILE_SIZE_LIMIT": "Soubor překračuje limit {MAXIMUM_FILE_UPLOAD_SIZE} přílohy",
   "CHAT_FORM": {
     "INVALID": {
       "FIELD": "Neplatné pole"
     }
+  },
+  "EMOJI": {
+    "PLACEHOLDER": "Hledat emoji",
+    "NOT_FOUND": "Žádné emoji neodpovídají vašemu hledání",
+    "ARIA_LABEL": "Výběr emoji"
   },
   "CSAT": {
     "TITLE": "Ohodnoťte svou konverzaci",
@@ -74,5 +104,39 @@
     "BUTTON_TEXT": "Požádat o přepis konverzace",
     "SEND_EMAIL_SUCCESS": "Přepis chatu byl úspěšně odeslán",
     "SEND_EMAIL_ERROR": "Došlo k chybě, zkuste to prosím znovu"
+  },
+  "INTEGRATIONS": {
+    "DYTE": {
+      "CLICK_HERE_TO_JOIN": "Přidejte se kliknutím sem",
+      "LEAVE_THE_ROOM": "Opustit hovor"
+    }
+  },
+  "PORTAL": {
+    "POPULAR_ARTICLES": "Populární články",
+    "VIEW_ALL_ARTICLES": "Zobrazit všechny články",
+    "IFRAME_LOAD_ERROR": "Při načítání článku došlo k chybě, obnovte stránku a zkuste to znovu."
+  },
+  "ATTACHMENTS": {
+    "image": {
+      "CONTENT": "Zpráva obrázku"
+    },
+    "audio": {
+      "CONTENT": "Zvuková zpráva"
+    },
+    "video": {
+      "CONTENT": "Video zpráva"
+    },
+    "file": {
+      "CONTENT": "Přílohu souboru"
+    },
+    "location": {
+      "CONTENT": "Poloha"
+    },
+    "fallback": {
+      "CONTENT": "sdílel URL"
+    }
+  },
+  "FOOTER_REPLY_TO": {
+    "REPLY_TO": "Odpověď na:"
   }
 }

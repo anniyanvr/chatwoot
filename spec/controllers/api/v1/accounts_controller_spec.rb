@@ -18,7 +18,7 @@ RSpec.describe 'Accounts API', type: :request do
         with_modified_env ENABLE_ACCOUNT_SIGNUP: 'true' do
           allow(account_builder).to receive(:perform).and_return([user, account])
 
-          params = { account_name: 'test', email: email, user: nil, user_full_name: user_full_name, password: 'Password1!' }
+          params = { account_name: 'test', email: email, user: nil, locale: nil, user_full_name: user_full_name, password: 'Password1!' }
 
           post api_v1_accounts_url,
                params: params,
@@ -27,6 +27,7 @@ RSpec.describe 'Accounts API', type: :request do
           expect(AccountBuilder).to have_received(:new).with(params.except(:password).merge(user_password: params[:password]))
           expect(account_builder).to have_received(:perform)
           expect(response.headers.keys).to include('access-token', 'token-type', 'client', 'expiry', 'uid')
+          expect(response.body).to include('en')
         end
       end
 
@@ -37,7 +38,7 @@ RSpec.describe 'Accounts API', type: :request do
           allow(ChatwootCaptcha).to receive(:new).and_return(captcha)
           allow(captcha).to receive(:valid?).and_return(true)
 
-          params = { account_name: 'test', email: email, user: nil, user_full_name: user_full_name, password: 'Password1!',
+          params = { account_name: 'test', email: email, user: nil, locale: nil, user_full_name: user_full_name, password: 'Password1!',
                      h_captcha_client_response: '123' }
 
           post api_v1_accounts_url,
@@ -46,6 +47,7 @@ RSpec.describe 'Accounts API', type: :request do
 
           expect(ChatwootCaptcha).to have_received(:new).with('123')
           expect(response.headers.keys).to include('access-token', 'token-type', 'client', 'expiry', 'uid')
+          expect(response.body).to include('en')
         end
       end
 
@@ -53,16 +55,15 @@ RSpec.describe 'Accounts API', type: :request do
         with_modified_env ENABLE_ACCOUNT_SIGNUP: 'true' do
           allow(account_builder).to receive(:perform).and_return(nil)
 
-          params = { account_name: nil, email: nil, user: nil, user_full_name: nil }
+          params = { account_name: nil, email: nil, user: nil, locale: 'en', user_full_name: nil }
 
           post api_v1_accounts_url,
                params: params,
                as: :json
 
-          expect(AccountBuilder).to have_received(:new).with(params.merge(user_password: params[:password]))
-          expect(account_builder).to have_received(:perform)
+          expect(AccountBuilder).not_to have_received(:new)
           expect(response).to have_http_status(:forbidden)
-          expect(response.body).to eq({ message: I18n.t('errors.signup.failed') }.to_json)
+          expect(response.body).to eq({ message: I18n.t('errors.signup.invalid_params') }.to_json)
         end
       end
     end
@@ -130,7 +131,34 @@ RSpec.describe 'Accounts API', type: :request do
         expect(response.body).to include(account.domain)
         expect(response.body).to include(account.support_email)
         expect(response.body).to include(account.auto_resolve_duration.to_s)
+        expect(response.body).to include(account.locale)
       end
+    end
+  end
+
+  describe 'GET /api/v1/accounts/{account.id}/cache_keys' do
+    let(:account) { create(:account) }
+    let(:admin) { create(:user, account: account, role: :administrator) }
+
+    it 'returns cache_keys as expected' do
+      account.update(auto_resolve_duration: 30)
+
+      get "/api/v1/accounts/#{account.id}/cache_keys",
+          headers: admin.create_new_auth_token,
+          as: :json
+
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body['cache_keys'].keys).to match_array(%w[label inbox team])
+    end
+
+    it 'sets the appropriate cache headers' do
+      get "/api/v1/accounts/#{account.id}/cache_keys",
+          headers: admin.create_new_auth_token,
+          as: :json
+
+      expect(response.headers['Cache-Control']).to include('max-age=10')
+      expect(response.headers['Cache-Control']).to include('private')
+      expect(response.headers['Cache-Control']).to include('stale-while-revalidate=300')
     end
   end
 
@@ -161,7 +189,10 @@ RSpec.describe 'Accounts API', type: :request do
         locale: 'en',
         domain: 'example.com',
         support_email: 'care@example.com',
-        auto_resolve_duration: 40
+        auto_resolve_duration: 40,
+        timezone: 'Asia/Kolkata',
+        industry: 'Technology',
+        company_size: '1-10'
       }
 
       it 'modifies an account' do
@@ -176,6 +207,29 @@ RSpec.describe 'Accounts API', type: :request do
         expect(account.reload.domain).to eq(params[:domain])
         expect(account.reload.support_email).to eq(params[:support_email])
         expect(account.reload.auto_resolve_duration).to eq(params[:auto_resolve_duration])
+
+        %w[timezone industry company_size].each do |attribute|
+          expect(account.reload.custom_attributes[attribute]).to eq(params[attribute.to_sym])
+        end
+      end
+
+      it 'updates onboarding step to invite_team if onboarding step is present in account custom attributes' do
+        account.update(custom_attributes: { onboarding_step: 'account_update' })
+        put "/api/v1/accounts/#{account.id}",
+            params: params,
+            headers: admin.create_new_auth_token,
+            as: :json
+
+        expect(account.reload.custom_attributes['onboarding_step']).to eq('invite_team')
+      end
+
+      it 'will not update onboarding step if onboarding step is not present in account custom attributes' do
+        put "/api/v1/accounts/#{account.id}",
+            params: params,
+            headers: admin.create_new_auth_token,
+            as: :json
+
+        expect(account.reload.custom_attributes['onboarding_step']).to be_nil
       end
 
       it 'Throws error 422' do
@@ -187,7 +241,7 @@ RSpec.describe 'Accounts API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['message']).to eq('Name is too long (maximum is 255 characters)')
       end
     end
@@ -206,14 +260,14 @@ RSpec.describe 'Accounts API', type: :request do
 
     context 'when it is an authenticated user' do
       it 'modifies an account' do
-        expect(agent.account_users.first.active_at).to eq(nil)
+        expect(agent.account_users.first.active_at).to be_nil
         post "/api/v1/accounts/#{account.id}/update_active_at",
              params: {},
              headers: agent.create_new_auth_token,
              as: :json
 
         expect(response).to have_http_status(:success)
-        expect(agent.account_users.first.active_at).not_to eq(nil)
+        expect(agent.account_users.first.active_at).not_to be_nil
       end
     end
   end

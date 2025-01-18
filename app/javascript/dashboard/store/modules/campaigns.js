@@ -1,6 +1,8 @@
 import * as MutationHelpers from 'shared/helpers/vuex/mutationHelpers';
 import types from '../mutation-types';
 import CampaignsAPI from '../../api/campaigns';
+import AnalyticsHelper from '../../helper/AnalyticsHelper';
+import { CAMPAIGNS_EVENTS } from '../../helper/AnalyticsHelper/events';
 
 export const state = {
   records: [],
@@ -15,9 +17,9 @@ export const getters = {
     return _state.uiFlags;
   },
   getCampaigns: _state => campaignType => {
-    return _state.records.filter(
-      record => record.campaign_type === campaignType
-    );
+    return _state.records
+      .filter(record => record.campaign_type === campaignType)
+      .sort((a1, a2) => a1.id - a2.id);
   },
   getAllCampaigns: _state => {
     return _state.records;
@@ -51,6 +53,7 @@ export const actions = {
     commit(types.SET_CAMPAIGN_UI_FLAG, { isUpdating: true });
     try {
       const response = await CampaignsAPI.update(id, updateObj);
+      AnalyticsHelper.track(CAMPAIGNS_EVENTS.UPDATE_CAMPAIGN);
       commit(types.EDIT_CAMPAIGN, response.data);
     } catch (error) {
       throw new Error(error);
@@ -62,6 +65,7 @@ export const actions = {
     commit(types.SET_CAMPAIGN_UI_FLAG, { isDeleting: true });
     try {
       await CampaignsAPI.delete(id);
+      AnalyticsHelper.track(CAMPAIGNS_EVENTS.DELETE_CAMPAIGN);
       commit(types.DELETE_CAMPAIGN, id);
     } catch (error) {
       throw new Error(error);

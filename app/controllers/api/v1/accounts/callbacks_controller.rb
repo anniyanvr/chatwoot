@@ -14,8 +14,18 @@ class Api::V1::Accounts::CallbacksController < Api::V1::Accounts::BaseController
       @facebook_inbox = Current.account.inboxes.create!(name: inbox_name, channel: facebook_channel)
       set_instagram_id(page_access_token, facebook_channel)
       set_avatar(@facebook_inbox, page_id)
-    rescue StandardError => e
-      Sentry.capture_exception(e)
+    end
+  rescue StandardError => e
+    ChatwootExceptionTracker.new(e).capture_exception
+    Rails.logger.error "Error in register_facebook_page: #{e.message}"
+    # Additional log statements
+    log_additional_info
+  end
+
+  def log_additional_info
+    Rails.logger.debug do
+      "user_access_token: #{params[:user_access_token]} , page_access_token: #{params[:page_access_token]} ,
+      page_id: #{params[:page_id]}, inbox_name: #{params[:inbox_name]}"
     end
   end
 
@@ -30,6 +40,8 @@ class Api::V1::Accounts::CallbacksController < Api::V1::Accounts::BaseController
 
     instagram_id = response['instagram_business_account']['id']
     facebook_channel.update(instagram_id: instagram_id)
+  rescue StandardError => e
+    Rails.logger.error "Error in set_instagram_id: #{e.message}"
   end
 
   # get params[:inbox_id], current_account. params[:omniauth_token]
@@ -60,7 +72,8 @@ class Api::V1::Accounts::CallbacksController < Api::V1::Accounts::BaseController
       set_instagram_id(access_token, fb_page)
       fb_page&.reauthorized!
     rescue StandardError => e
-      Sentry.capture_exception(e)
+      ChatwootExceptionTracker.new(e).capture_exception
+      Rails.logger.error "Error in update_fb_page: #{e.message}"
     end
   end
 
@@ -77,7 +90,7 @@ class Api::V1::Accounts::CallbacksController < Api::V1::Accounts::BaseController
     koala = Koala::Facebook::OAuth.new(GlobalConfigService.load('FB_APP_ID', ''), GlobalConfigService.load('FB_APP_SECRET', ''))
     koala.exchange_access_token_info(omniauth_token)['access_token']
   rescue StandardError => e
-    Rails.logger.error e
+    Rails.logger.error "Error in long_lived_token: #{e.message}"
   end
 
   def mark_already_existing_facebook_pages(data)
@@ -90,9 +103,7 @@ class Api::V1::Accounts::CallbacksController < Api::V1::Accounts::BaseController
   end
 
   def set_avatar(facebook_inbox, page_id)
-    avatar_file = Down.download(
-      "http://graph.facebook.com/#{page_id}/picture?type=large"
-    )
-    facebook_inbox.avatar.attach(io: avatar_file, filename: avatar_file.original_filename, content_type: avatar_file.content_type)
+    avatar_url = "https://graph.facebook.com/#{page_id}/picture?type=large"
+    Avatar::AvatarFromUrlJob.perform_later(facebook_inbox, avatar_url)
   end
 end

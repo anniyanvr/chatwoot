@@ -1,9 +1,10 @@
 {
   "AUTOMATION": {
-    "HEADER": "Automations",
+    "HEADER": "Automatyzacja",
+    "DESCRIPTION": "Automation can replace and streamline existing processes that require manual effort, such as adding labels and assigning conversations to the most suitable agent. This allows the team to focus on their strengths while reducing time spent on routine tasks.",
+    "LEARN_MORE": "Learn more about automation",
     "HEADER_BTN_TXT": "Dodaj regułę automatyzacji",
-    "LOADING": "Fetching automation rules",
-    "SIDEBAR_TXT": "<p><b>Automation Rules</b> <p>Automation can replace and automate existing processes that require manual effort. You can do many things with automation, including adding labels and assigning conversation to the best agent. So the team focuses on what they do best and spends more little time on manual tasks.</p>",
+    "LOADING": "Pobieranie reguł automatyzacji",
     "ADD": {
       "TITLE": "Dodaj regułę automatyzacji",
       "SUBMIT": "Stwórz",
@@ -12,43 +13,43 @@
         "NAME": {
           "LABEL": "Nazwa reguły",
           "PLACEHOLDER": "Wprowadź nazwę reguły",
-          "ERROR": "Name is required"
+          "ERROR": "Nazwa jest wymagana"
         },
         "DESC": {
           "LABEL": "Opis",
-          "PLACEHOLDER": "Enter rule description",
-          "ERROR": "Description is required"
+          "PLACEHOLDER": "Wprowadź opis reguły",
+          "ERROR": "Opis jest wymagany"
         },
         "EVENT": {
-          "LABEL": "Event",
-          "PLACEHOLDER": "Please select one",
-          "ERROR": "Event is required"
+          "LABEL": "Zdarzenie",
+          "PLACEHOLDER": "Wybierz jedno",
+          "ERROR": "Zdarzenie jest wymagane"
         },
         "CONDITIONS": {
-          "LABEL": "Conditions"
+          "LABEL": "Warunki"
         },
         "ACTIONS": {
           "LABEL": "Akcje"
         }
       },
-      "CONDITION_BUTTON_LABEL": "Add Condition",
-      "ACTION_BUTTON_LABEL": "Add Action",
+      "CONDITION_BUTTON_LABEL": "Dodaj warunek",
+      "ACTION_BUTTON_LABEL": "Dodaj akcję",
       "API": {
-        "SUCCESS_MESSAGE": "Automation rule added successfully",
-        "ERROR_MESSAGE": "Could not able to create a automation rule, Please try again later"
+        "SUCCESS_MESSAGE": "Reguła automatyzacji została dodana",
+        "ERROR_MESSAGE": "Nie udało się utworzyć reguły automatyzacji, spróbuj ponownie później"
       }
     },
     "LIST": {
-      "TABLE_HEADER": [
-        "Nazwa",
-        "Opis",
-        "Active",
-        "Created on"
-      ],
-      "404": "No automation rules found"
+      "TABLE_HEADER": {
+        "NAME": "Imię",
+        "DESCRIPTION": "Opis",
+        "ACTIVE": "Aktywne",
+        "CREATED_ON": "Utworzona dnia"
+      },
+      "404": "Nie znaleziono reguł automatyzacji"
     },
     "DELETE": {
-      "TITLE": "Delete Automation Rule",
+      "TITLE": "Usuń regułę automatyzacji",
       "SUBMIT": "Usuń",
       "CANCEL_BUTTON_TEXT": "Anuluj",
       "CONFIRM": {
@@ -58,24 +59,24 @@
         "NO": "Nie, zachowaj "
       },
       "API": {
-        "SUCCESS_MESSAGE": "Automation rule deleted successfully",
-        "ERROR_MESSAGE": "Could not able to delete a automation rule, Please try again later"
+        "SUCCESS_MESSAGE": "Reguła automatyzacji została usunięta",
+        "ERROR_MESSAGE": "Nie udało się usunąć reguły automatyzacji, spróbuj ponownie później"
       }
     },
     "EDIT": {
-      "TITLE": "Edit Automation Rule",
+      "TITLE": "Edytuj regułę automatyzacji",
       "SUBMIT": "Aktualizuj",
       "CANCEL_BUTTON_TEXT": "Anuluj",
       "API": {
-        "SUCCESS_MESSAGE": "Automation rule updated successfully",
-        "ERROR_MESSAGE": "Could not update automation rule, Please try again later"
+        "SUCCESS_MESSAGE": "Reguła automatyzacji została zaktualizowana",
+        "ERROR_MESSAGE": "Nie udało się zaktualizować reguły automatyzacji, spróbuj ponownie później"
       }
     },
     "CLONE": {
-      "TOOLTIP": "Clone",
+      "TOOLTIP": "Klonuj",
       "API": {
-        "SUCCESS_MESSAGE": "Automation cloned successfully",
-        "ERROR_MESSAGE": "Could not clone automation rule, Please try again later"
+        "SUCCESS_MESSAGE": "Reguła automatyzacji została sklonowana pomyślnie",
+        "ERROR_MESSAGE": "Nie udało się sklonować reguły automatyzacji, spróbuj ponownie później"
       }
     },
     "FORM": {
@@ -83,25 +84,47 @@
       "CREATE": "Stwórz",
       "DELETE": "Usuń",
       "CANCEL": "Anuluj",
-      "RESET_MESSAGE": "Changing event type will reset the conditions and events you have added below"
+      "RESET_MESSAGE": "Zmiana typu zdarzenia spowoduje zresetowanie dodanych warunków i zdarzeń poniżej"
     },
     "CONDITION": {
-      "DELETE_MESSAGE": "You need to have atleast one condition to save"
+      "DELETE_MESSAGE": "Musisz mieć co najmniej jeden warunek, aby zapisać",
+      "CONTACT_CUSTOM_ATTR_LABEL": "Niestandardowe atrybuty kontaktu",
+      "CONVERSATION_CUSTOM_ATTR_LABEL": "Niestandardowe atrybuty rozmowy"
     },
     "ACTION": {
-      "DELETE_MESSAGE": "You need to have atleast one action to save"
+      "DELETE_MESSAGE": "Musisz mieć co najmniej jedną akcję, aby zapisać",
+      "TEAM_MESSAGE_INPUT_PLACEHOLDER": "Wprowadź swoją wiadomość tutaj",
+      "TEAM_DROPDOWN_PLACEHOLDER": "Wybierz zespoły",
+      "EMAIL_INPUT_PLACEHOLDER": "Enter email",
+      "URL_INPUT_PLACEHOLDER": "Enter URL"
     },
     "TOGGLE": {
-      "ACTIVATION_TITLE": "Activate Automation Rule",
-      "DEACTIVATION_TITLE": "Deactivate Automation Rule",
-      "ACTIVATION_DESCRIPTION": "This action will activate the automation rule '{automationName}'. Are you sure you want to proceed?",
-      "DEACTIVATION_DESCRIPTION": "This action will deactivate the automation rule '{automationName}'. Are you sure you want to proceed?",
-      "ACTIVATION_SUCCESFUL": "Automation Rule Activated Successfully",
-      "DEACTIVATION_SUCCESFUL": "Automation Rule Deactivated Successfully",
-      "ACTIVATION_ERROR": "Could not Activate Automation, Please try again later",
-      "DEACTIVATION_ERROR": "Could not Deactivate Automation, Please try again later",
+      "ACTIVATION_TITLE": "Aktywuj regułę automatyzacji",
+      "DEACTIVATION_TITLE": "Wyłącz regułę automatyzacji",
+      "ACTIVATION_DESCRIPTION": "Ta akcja spowoduje aktywację reguły automatyzacji '{automationName}'. Czy na pewno chcesz kontynuować?",
+      "DEACTIVATION_DESCRIPTION": "Ta akcja spowoduje deaktywację reguły automatyzacji '{automationName}'. Czy na pewno chcesz kontynuować?",
+      "ACTIVATION_SUCCESFUL": "Reguła automatyzacji została pomyślnie aktywowana",
+      "DEACTIVATION_SUCCESFUL": "Reguła automatyzacji została pomyślnie wyłączona",
+      "ACTIVATION_ERROR": "Nie można aktywować reguły automatyzacji, spróbuj ponownie później",
+      "DEACTIVATION_ERROR": "Nie można wyłączyć reguły automatyzacji, spróbuj ponownie później",
       "CONFIRMATION_LABEL": "Tak",
       "CANCEL_LABEL": "Nie"
+    },
+    "ATTACHMENT": {
+      "UPLOAD_ERROR": "Nie udało się przesłać załącznika, spróbuj ponownie",
+      "LABEL_IDLE": "Prześlij załącznik",
+      "LABEL_UPLOADING": "Przesyłanie...",
+      "LABEL_UPLOADED": "Przesłano pomyślnie",
+      "LABEL_UPLOAD_FAILED": "Nie udało się przesłać załącznika"
+    },
+    "ERRORS": {
+      "ATTRIBUTE_KEY_REQUIRED": "Attribute key is required",
+      "FILTER_OPERATOR_REQUIRED": "Filter operator is required",
+      "VALUE_REQUIRED": "Wartość jest wymagana",
+      "VALUE_MUST_BE_BETWEEN_1_AND_998": "Value must be between 1 and 998",
+      "ACTION_PARAMETERS_REQUIRED": "Action parameters are required",
+      "ATLEAST_ONE_CONDITION_REQUIRED": "At least one condition is required",
+      "ATLEAST_ONE_ACTION_REQUIRED": "At least one action is required"
     }
   }
 }

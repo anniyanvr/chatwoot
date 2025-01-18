@@ -1,29 +1,5 @@
-<template>
-  <modal :show.sync="show" :on-close="cancel">
-    <div class="column content-box">
-      <woot-modal-header :header-title="title"> </woot-modal-header>
-      <div class="row modal-content">
-        <div class="medium-12 columns">
-          <p>
-            {{ description }}
-          </p>
-        </div>
-        <div class="modal-footer">
-          <div class="medium-12 columns">
-            <woot-button @click="confirm">
-              {{ confirmLabel }}
-            </woot-button>
-            <button class="button clear" @click="cancel">
-              {{ cancelLabel }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </modal>
-</template>
 <script>
-import Modal from '../../Modal';
+import Modal from '../../Modal.vue';
 
 export default {
   components: {
@@ -73,3 +49,19 @@ export default {
   },
 };
 </script>
+
+<template>
+  <Modal v-model:show="show" :on-close="cancel">
+    <div class="h-auto overflow-auto flex flex-col">
+      <woot-modal-header :header-title="title" :header-content="description" />
+      <div class="flex flex-row justify-end gap-2 py-4 px-6 w-full">
+        <woot-button variant="clear" @click="cancel">
+          {{ cancelLabel }}
+        </woot-button>
+        <woot-button @click="confirm">
+          {{ confirmLabel }}
+        </woot-button>
+      </div>
+    </div>
+  </Modal>
+</template>

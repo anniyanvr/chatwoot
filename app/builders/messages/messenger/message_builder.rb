@@ -2,7 +2,8 @@ class Messages::Messenger::MessageBuilder
   include ::FileTypeHelper
 
   def process_attachment(attachment)
-    return if attachment['type'].to_sym == :template
+    # This check handles very rare case if there are multiple files to attach with only one usupported file
+    return if unsupported_file_type?(attachment['type'])
 
     attachment_obj = @message.attachments.new(attachment_params(attachment).except(:remote_file_url))
     attachment_obj.save!
@@ -26,7 +27,7 @@ class Messages::Messenger::MessageBuilder
     file_type = attachment['type'].to_sym
     params = { file_type: file_type, account_id: @message.account_id }
 
-    if [:image, :file, :audio, :video, :share, :story_mention].include? file_type
+    if [:image, :file, :audio, :video, :share, :story_mention, :ig_reel].include? file_type
       params.merge!(file_type_params(attachment))
     elsif file_type == :location
       params.merge!(location_params(attachment))
@@ -45,6 +46,7 @@ class Messages::Messenger::MessageBuilder
   end
 
   def update_attachment_file_type(attachment)
+    return if @message.reload.attachments.blank?
     return unless attachment.file_type == 'share' || attachment.file_type == 'story_mention'
 
     attachment.file_type = file_type(attachment.file&.content_type)
@@ -53,21 +55,39 @@ class Messages::Messenger::MessageBuilder
 
   def fetch_story_link(attachment)
     message = attachment.message
-    begin
-      k = Koala::Facebook::API.new(@inbox.channel.page_access_token) if @inbox.facebook?
-      result = k.get_object(message.source_id, fields: %w[story from]) || {}
-    rescue Koala::Facebook::AuthenticationError
-      @inbox.channel.authorization_error!
-      raise
-    rescue StandardError => e
-      result = {}
-      Sentry.capture_exception(e)
-    end
+    result = get_story_object_from_source_id(message.source_id)
+
+    return if result.blank?
+
     story_id = result['story']['mention']['id']
     story_sender = result['from']['username']
     message.content_attributes[:story_sender] = story_sender
     message.content_attributes[:story_id] = story_id
+    message.content_attributes[:image_type] = 'story_mention'
     message.content = I18n.t('conversations.messages.instagram_story_content', story_sender: story_sender)
     message.save!
+  end
+
+  def get_story_object_from_source_id(source_id)
+    k = Koala::Facebook::API.new(@inbox.channel.page_access_token) if @inbox.facebook?
+    k.get_object(source_id, fields: %w[story from]) || {}
+  rescue Koala::Facebook::AuthenticationError
+    @inbox.channel.authorization_error!
+    raise
+  rescue Koala::Facebook::ClientError => e
+    # The exception occurs when we are trying fetch the deleted story or blocked story.
+    @message.attachments.destroy_all
+    @message.update(content: I18n.t('conversations.messages.instagram_deleted_story_content'))
+    Rails.logger.error e
+    {}
+  rescue StandardError => e
+    ChatwootExceptionTracker.new(e, account: @inbox.account).capture_exception
+    {}
+  end
+
+  private
+
+  def unsupported_file_type?(attachment_type)
+    [:template, :unsupported_type].include? attachment_type.to_sym
   end
 end

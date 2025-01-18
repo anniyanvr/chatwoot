@@ -36,32 +36,27 @@ class Api::V1::Widget::BaseController < ApplicationController
       contact_id: @contact.id,
       contact_inbox_id: @contact_inbox.id,
       additional_attributes: {
+        browser_language: browser.accept_language&.first&.code,
         browser: browser_params,
-        referer: permitted_params[:message][:referer_url],
-        initiated_at: timestamp_params
-      }
+        initiated_at: timestamp_params,
+        referer: permitted_params[:message][:referer_url]
+      },
+      custom_attributes: permitted_params[:custom_attributes].presence || {}
     }
   end
 
-  def update_contact(email)
-    contact_with_email = @current_account.contacts.find_by(email: email)
-    if contact_with_email
-      @contact = ::ContactMergeAction.new(
-        account: @current_account,
-        base_contact: contact_with_email,
-        mergee_contact: @contact
-      ).perform
-    else
-      @contact.update!(email: email, name: contact_name)
-    end
-  end
-
   def contact_email
-    permitted_params[:contact][:email].downcase
+    permitted_params.dig(:contact, :email)&.downcase
   end
 
   def contact_name
-    params[:contact][:name] || contact_email.split('@')[0]
+    return if @contact.email.present? || @contact.phone_number.present? || @contact.identifier.present?
+
+    permitted_params.dig(:contact, :name) || (contact_email.split('@')[0] if contact_email.present?)
+  end
+
+  def contact_phone_number
+    permitted_params.dig(:contact, :phone_number)
   end
 
   def browser_params
@@ -84,6 +79,9 @@ class Api::V1::Widget::BaseController < ApplicationController
       sender: @contact,
       content: permitted_params[:message][:content],
       inbox_id: conversation.inbox_id,
+      content_attributes: {
+        in_reply_to: permitted_params[:message][:reply_to]
+      },
       echo_id: permitted_params[:message][:echo_id],
       message_type: :incoming
     }

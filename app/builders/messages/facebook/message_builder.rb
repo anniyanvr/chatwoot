@@ -22,28 +22,26 @@ class Messages::Facebook::MessageBuilder < Messages::Messenger::MessageBuilder
     return if @inbox.channel.reauthorization_required?
 
     ActiveRecord::Base.transaction do
-      build_contact
+      build_contact_inbox
       build_message
     end
-    ensure_contact_avatar
-  rescue Koala::Facebook::AuthenticationError
-    Rails.logger.error "Facebook Authorization expired for Inbox #{@inbox.id}"
+  rescue Koala::Facebook::AuthenticationError => e
+    Rails.logger.warn("Facebook authentication error for inbox: #{@inbox.id} with error: #{e.message}")
+    Rails.logger.error e
+    @inbox.channel.authorization_error!
   rescue StandardError => e
-    Sentry.capture_exception(e)
+    ChatwootExceptionTracker.new(e, account: @inbox.account).capture_exception
     true
   end
 
   private
 
-  def contact
-    @contact ||= @inbox.contact_inboxes.find_by(source_id: @sender_id)&.contact
-  end
-
-  def build_contact
-    return if contact.present?
-
-    @contact = Contact.create!(contact_params.except(:remote_avatar_url))
-    @contact_inbox = ContactInbox.create(contact: contact, inbox: @inbox, source_id: @sender_id)
+  def build_contact_inbox
+    @contact_inbox = ::ContactInboxWithContactBuilder.new(
+      source_id: @sender_id,
+      inbox: @inbox,
+      contact_attributes: contact_params
+    ).perform
   end
 
   def build_message
@@ -54,19 +52,27 @@ class Messages::Facebook::MessageBuilder < Messages::Messenger::MessageBuilder
     end
   end
 
-  def ensure_contact_avatar
-    return if contact_params[:remote_avatar_url].blank?
-    return if @contact.avatar.attached?
-
-    ContactAvatarJob.perform_later(@contact, contact_params[:remote_avatar_url])
+  def conversation
+    @conversation ||= set_conversation_based_on_inbox_config
   end
 
-  def conversation
-    @conversation ||= Conversation.find_by(conversation_params) || build_conversation
+  def set_conversation_based_on_inbox_config
+    if @inbox.lock_to_single_conversation
+      Conversation.where(conversation_params).order(created_at: :desc).first || build_conversation
+    else
+      find_or_build_for_multiple_conversations
+    end
+  end
+
+  def find_or_build_for_multiple_conversations
+    # If lock to single conversation is disabled, we will create a new conversation if previous conversation is resolved
+    last_conversation = Conversation.where(conversation_params).where.not(status: :resolved).order(created_at: :desc).first
+    return build_conversation if last_conversation.nil?
+
+    last_conversation
   end
 
   def build_conversation
-    @contact_inbox ||= contact.contact_inboxes.find_by!(source_id: @sender_id)
     Conversation.create!(conversation_params.merge(
                            contact_inbox_id: @contact_inbox.id
                          ))
@@ -94,7 +100,7 @@ class Messages::Facebook::MessageBuilder < Messages::Messenger::MessageBuilder
     {
       account_id: @inbox.account_id,
       inbox_id: @inbox.id,
-      contact_id: contact.id
+      contact_id: @contact_inbox.contact_id
     }
   end
 
@@ -105,7 +111,10 @@ class Messages::Facebook::MessageBuilder < Messages::Messenger::MessageBuilder
       message_type: @message_type,
       content: response.content,
       source_id: response.identifier,
-      sender: @outgoing_echo ? nil : contact
+      content_attributes: {
+        in_reply_to_external_id: response.in_reply_to_external_id
+      },
+      sender: @outgoing_echo ? nil : @contact_inbox.contact
     }
   end
 
@@ -113,26 +122,36 @@ class Messages::Facebook::MessageBuilder < Messages::Messenger::MessageBuilder
     {
       name: "#{result['first_name'] || 'John'} #{result['last_name'] || 'Doe'}",
       account_id: @inbox.account_id,
-      remote_avatar_url: result['profile_pic'] || ''
+      avatar_url: result['profile_pic']
     }
   end
 
+  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable Metrics/MethodLength
   def contact_params
     begin
       k = Koala::Facebook::API.new(@inbox.channel.page_access_token) if @inbox.facebook?
       result = k.get_object(@sender_id) || {}
-    rescue Koala::Facebook::AuthenticationError
+    rescue Koala::Facebook::AuthenticationError => e
+      Rails.logger.warn("Facebook authentication error for inbox: #{@inbox.id} with error: #{e.message}")
+      Rails.logger.error e
       @inbox.channel.authorization_error!
       raise
     rescue Koala::Facebook::ClientError => e
       result = {}
       # OAuthException, code: 100, error_subcode: 2018218, message: (#100) No profile available for this user
       # We don't need to capture this error as we don't care about contact params in case of echo messages
-      Sentry.capture_exception(e) unless @outgoing_echo
+      if e.message.include?('2018218')
+        Rails.logger.warn e
+      else
+        ChatwootExceptionTracker.new(e, account: @inbox.account).capture_exception unless @outgoing_echo
+      end
     rescue StandardError => e
       result = {}
-      Sentry.capture_exception(e)
+      ChatwootExceptionTracker.new(e, account: @inbox.account).capture_exception
     end
     process_contact_params_result(result)
   end
+  # rubocop:enable Metrics/AbcSize
+  # rubocop:enable Metrics/MethodLength
 end

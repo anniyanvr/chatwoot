@@ -1,7 +1,90 @@
+<script>
+import { mapGetters } from 'vuex';
+import { getContrastingTextColor } from '@chatwoot/utils';
+import { useDarkMode } from 'widget/composables/useDarkMode';
+
+export default {
+  props: {
+    buttonLabel: {
+      type: String,
+      default: '',
+    },
+    items: {
+      type: Array,
+      default: () => [],
+    },
+    submittedValues: {
+      type: Array,
+      default: () => [],
+    },
+  },
+  emits: ['submit'],
+  setup() {
+    const { getThemeClass } = useDarkMode();
+    return { getThemeClass };
+  },
+  data() {
+    return {
+      formValues: {},
+      hasSubmitted: false,
+    };
+  },
+  computed: {
+    ...mapGetters({
+      widgetColor: 'appConfig/getWidgetColor',
+    }),
+    textColor() {
+      return getContrastingTextColor(this.widgetColor);
+    },
+    inputColor() {
+      return `${this.getThemeClass('bg-white', 'dark:bg-slate-600')}
+        ${this.getThemeClass('text-black-900', 'dark:text-slate-50')}`;
+    },
+    isFormValid() {
+      return this.items.reduce((acc, { name }) => {
+        return !!this.formValues[name] && acc;
+      }, true);
+    },
+  },
+  mounted() {
+    if (this.submittedValues.length) {
+      this.updateFormValues();
+    } else {
+      this.setFormDefaults();
+    }
+  },
+  methods: {
+    onSubmitClick() {
+      this.hasSubmitted = true;
+    },
+    onSubmit() {
+      if (!this.isFormValid) {
+        return;
+      }
+      this.$emit('submit', this.formValues);
+    },
+    buildFormObject(formObjectArray) {
+      return formObjectArray.reduce((acc, obj) => {
+        return {
+          ...acc,
+          [obj.name]: obj.value || obj.default,
+        };
+      }, {});
+    },
+    updateFormValues() {
+      this.formValues = this.buildFormObject(this.submittedValues);
+    },
+    setFormDefaults() {
+      this.formValues = this.buildFormObject(this.items);
+    },
+  },
+};
+</script>
+
 <template>
   <div
     class="form chat-bubble agent"
-    :class="$dm('bg-white', 'dark:bg-slate-700')"
+    :class="getThemeClass('bg-white', 'dark:bg-slate-700')"
   >
     <form @submit.prevent="onSubmit">
       <div
@@ -12,7 +95,7 @@
           'has-submitted': hasSubmitted,
         }"
       >
-        <label :class="$dm('text-black-900', 'dark:text-slate-50')">{{
+        <label :class="getThemeClass('text-black-900', 'dark:text-slate-50')">{{
           item.label
         }}</label>
         <input
@@ -71,7 +154,11 @@
         v-if="!submittedValues.length"
         class="button block"
         type="submit"
-        :style="{ background: widgetColor, borderColor: widgetColor }"
+        :style="{
+          background: widgetColor,
+          borderColor: widgetColor,
+          color: textColor,
+        }"
         @click="onSubmitClick"
       >
         {{ buttonLabel || $t('COMPONENTS.FORM_BUBBLE.SUBMIT') }}
@@ -80,83 +167,8 @@
   </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex';
-import darkModeMixin from 'widget/mixins/darkModeMixin.js';
-
-export default {
-  mixins: [darkModeMixin],
-  props: {
-    buttonLabel: {
-      type: String,
-      default: '',
-    },
-    items: {
-      type: Array,
-      default: () => [],
-    },
-    submittedValues: {
-      type: Array,
-      default: () => [],
-    },
-  },
-  data() {
-    return {
-      formValues: {},
-      hasSubmitted: false,
-    };
-  },
-  computed: {
-    ...mapGetters({
-      widgetColor: 'appConfig/getWidgetColor',
-    }),
-    inputColor() {
-      return `${this.$dm('bg-white', 'dark:bg-slate-600')}
-        ${this.$dm('text-black-900', 'dark:text-slate-50')}`;
-    },
-    isFormValid() {
-      return this.items.reduce((acc, { name }) => {
-        return !!this.formValues[name] && acc;
-      }, true);
-    },
-  },
-  mounted() {
-    if (this.submittedValues.length) {
-      this.updateFormValues();
-    } else {
-      this.setFormDefaults();
-    }
-  },
-  methods: {
-    onSubmitClick() {
-      this.hasSubmitted = true;
-    },
-    onSubmit() {
-      if (!this.isFormValid) {
-        return;
-      }
-      this.$emit('submit', this.formValues);
-    },
-    buildFormObject(formObjectArray) {
-      return formObjectArray.reduce((acc, obj) => {
-        return {
-          ...acc,
-          [obj.name]: obj.value || obj.default,
-        };
-      }, {});
-    },
-    updateFormValues() {
-      this.formValues = this.buildFormObject(this.submittedValues);
-    },
-    setFormDefaults() {
-      this.formValues = this.buildFormObject(this.items);
-    },
-  },
-};
-</script>
-
 <style scoped lang="scss">
-@import '~widget/assets/scss/variables.scss';
+@import 'widget/assets/scss/variables.scss';
 
 .form {
   padding: $space-normal;

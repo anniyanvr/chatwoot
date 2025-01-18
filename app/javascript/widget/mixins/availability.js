@@ -1,5 +1,5 @@
-import compareAsc from 'date-fns/compareAsc';
-import { buildDateFromTime } from 'shared/helpers/DateHelper';
+import { utcToZonedTime } from 'date-fns-tz';
+import { isTimeAfter } from 'shared/helpers/DateHelper';
 
 export default {
   computed: {
@@ -21,6 +21,17 @@ export default {
           return this.$t('REPLY_TIME.IN_A_FEW_HOURS');
       }
     },
+    replyWaitMessage() {
+      const { workingHoursEnabled } = this.channelConfig;
+      if (workingHoursEnabled) {
+        return this.isOnline
+          ? this.replyTimeStatus
+          : `${this.$t('REPLY_TIME.BACK_IN')} ${this.timeLeftToBackInOnline}`;
+      }
+      return this.isOnline
+        ? this.replyTimeStatus
+        : this.$t('TEAM_AVAILABILITY.OFFLINE');
+    },
     outOfOfficeMessage() {
       return this.channelConfig.outOfOfficeMessage;
     },
@@ -33,23 +44,36 @@ export default {
         closedAllDay,
         openAllDay,
       } = this.currentDayAvailability;
+
+      if (openAllDay) {
+        return true;
+      }
+
+      if (closedAllDay) {
+        return false;
+      }
+
       const { utcOffset } = this.channelConfig;
-
-      if (openAllDay) return true;
-
-      if (closedAllDay) return false;
-
-      const startTime = buildDateFromTime(openHour, openMinute, utcOffset);
-      const endTime = buildDateFromTime(closeHour, closeMinute, utcOffset);
-      const isBetween =
-        compareAsc(new Date(), startTime) === 1 &&
-        compareAsc(endTime, new Date()) === 1;
-
-      if (isBetween) return true;
-      return false;
+      const today = this.getDateWithOffset(utcOffset);
+      const currentHours = today.getHours();
+      const currentMinutes = today.getMinutes();
+      const isAfterStartTime = isTimeAfter(
+        currentHours,
+        currentMinutes,
+        openHour,
+        openMinute
+      );
+      const isBeforeEndTime = isTimeAfter(
+        closeHour,
+        closeMinute,
+        currentHours,
+        currentMinutes
+      );
+      return isAfterStartTime && isBeforeEndTime;
     },
     currentDayAvailability() {
-      const dayOfTheWeek = new Date().getDay();
+      const { utcOffset } = this.channelConfig;
+      const dayOfTheWeek = this.getDateWithOffset(utcOffset).getDay();
       const [workingHourConfig = {}] = this.channelConfig.workingHours.filter(
         workingHour => workingHour.day_of_week === dayOfTheWeek
       );
@@ -63,8 +87,14 @@ export default {
       };
     },
     isInBusinessHours() {
-      const { workingHoursEnabled } = window.chatwootWebChannel;
+      const { workingHoursEnabled } = this.channelConfig;
       return workingHoursEnabled ? this.isInBetweenTheWorkingHours : true;
+    },
+  },
+
+  methods: {
+    getDateWithOffset(utcOffset) {
+      return utcToZonedTime(new Date().toISOString(), utcOffset);
     },
   },
 };

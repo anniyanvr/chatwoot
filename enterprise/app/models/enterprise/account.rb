@@ -1,16 +1,36 @@
 module Enterprise::Account
   def usage_limits
     {
-      agents: get_limits(:agents).to_i,
+      agents: agent_limits.to_i,
       inboxes: get_limits(:inboxes).to_i
     }
   end
 
+  def subscribed_features
+    plan_features = InstallationConfig.find_by(name: 'CHATWOOT_CLOUD_PLAN_FEATURES')&.value
+    return [] if plan_features.blank?
+
+    plan_features[plan_name]
+  end
+
   private
+
+  def plan_name
+    custom_attributes['plan_name']
+  end
+
+  def agent_limits
+    subscribed_quantity = custom_attributes['subscribed_quantity']
+    subscribed_quantity || get_limits(:agents)
+  end
 
   def get_limits(limit_name)
     config_name = "ACCOUNT_#{limit_name.to_s.upcase}_LIMIT"
-    self[:limits][limit_name.to_s] || GlobalConfig.get(config_name)[config_name] || ChatwootApp.max_limit
+    return self[:limits][limit_name.to_s] if self[:limits][limit_name.to_s].present?
+
+    return GlobalConfig.get(config_name)[config_name] if GlobalConfig.get(config_name)[config_name].present?
+
+    ChatwootApp.max_limit
   end
 
   def validate_limit_keys

@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe 'Team Members API', type: :request do
   let(:account) { create(:account) }
+  let(:account_2) { create(:account) }
   let!(:team) { create(:team, account: account) }
 
   describe 'GET /api/v1/accounts/{account.id}/teams/{team_id}/team_members' do
@@ -23,7 +24,7 @@ RSpec.describe 'Team Members API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:success)
-        expect(JSON.parse(response.body).first['id']).to eq(agent.id)
+        expect(response.parsed_body.first['id']).to eq(agent.id)
       end
     end
   end
@@ -64,7 +65,7 @@ RSpec.describe 'Team Members API', type: :request do
              as: :json
 
         expect(response).to have_http_status(:success)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response.count).to eq(user_ids.count - 1)
       end
     end
@@ -120,6 +121,7 @@ RSpec.describe 'Team Members API', type: :request do
 
     context 'when it is an authenticated user' do
       let(:agent) { create(:user, account: account, role: :agent) }
+      let(:agent_2) { create(:user, account: account_2, role: :agent) }
       let(:administrator) { create(:user, account: account, role: :administrator) }
 
       it 'return unauthorized for agent' do
@@ -142,8 +144,21 @@ RSpec.describe 'Team Members API', type: :request do
               as: :json
 
         expect(response).to have_http_status(:success)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response.count).to eq(user_ids.count)
+      end
+
+      it 'ignores the user ids when its not a valid account user id' do
+        params = { user_ids: [agent_2.id] }
+
+        patch "/api/v1/accounts/#{account.id}/teams/#{team.id}/team_members",
+              params: params,
+              headers: administrator.create_new_auth_token,
+              as: :json
+
+        expect(response).to have_http_status(:unauthorized)
+        json_response = response.parsed_body
+        expect(json_response['error']).to eq('Invalid User IDs')
       end
     end
   end

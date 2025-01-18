@@ -1,116 +1,101 @@
-import Index from './Index';
-import AgentReports from './AgentReports';
-import LabelReports from './LabelReports';
-import InboxReports from './InboxReports';
-import TeamReports from './TeamReports';
-import CsatResponses from './CsatResponses';
-import SettingsContent from '../Wrapper';
 import { frontendURL } from '../../../../helper/URLHelper';
+import { FEATURE_FLAGS } from 'dashboard/featureFlags';
+
+import ReportsWrapper from './components/ReportsWrapper.vue';
+import Index from './Index.vue';
+import AgentReports from './AgentReports.vue';
+import LabelReports from './LabelReports.vue';
+import InboxReports from './InboxReports.vue';
+import TeamReports from './TeamReports.vue';
+import CsatResponses from './CsatResponses.vue';
+import BotReports from './BotReports.vue';
+import LiveReports from './LiveReports.vue';
+import SLAReports from './SLAReports.vue';
 
 export default {
   routes: [
     {
       path: frontendURL('accounts/:accountId/reports'),
-      component: SettingsContent,
-      props: {
-        headerTitle: 'REPORT.HEADER',
-        icon: 'arrow-trending-lines',
-        keepAlive: false,
-      },
+      component: ReportsWrapper,
       children: [
         {
           path: '',
-          redirect: 'overview',
+          redirect: to => {
+            return { name: 'account_overview_reports', params: to.params };
+          },
         },
         {
           path: 'overview',
-          name: 'settings_account_reports',
-          roles: ['administrator'],
+          name: 'account_overview_reports',
+          meta: {
+            permissions: ['administrator', 'report_manage'],
+          },
+          component: LiveReports,
+        },
+        {
+          path: 'conversation',
+          name: 'conversation_reports',
+          meta: {
+            permissions: ['administrator', 'report_manage'],
+          },
           component: Index,
         },
-      ],
-    },
-    {
-      path: frontendURL('accounts/:accountId/reports'),
-      component: SettingsContent,
-      props: {
-        headerTitle: 'CSAT_REPORTS.HEADER',
-        icon: 'emoji',
-        keepAlive: false,
-      },
-      children: [
-        {
-          path: 'csat',
-          name: 'csat_reports',
-          roles: ['administrator'],
-          component: CsatResponses,
-        },
-      ],
-    },
-    {
-      path: frontendURL('accounts/:accountId/reports'),
-      component: SettingsContent,
-      props: {
-        headerTitle: 'AGENT_REPORTS.HEADER',
-        icon: 'people',
-        keepAlive: false,
-      },
-      children: [
         {
           path: 'agent',
           name: 'agent_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator', 'report_manage'],
+          },
           component: AgentReports,
         },
-      ],
-    },
-    {
-      path: frontendURL('accounts/:accountId/reports'),
-      component: SettingsContent,
-      props: {
-        headerTitle: 'LABEL_REPORTS.HEADER',
-        icon: 'tag',
-        keepAlive: false,
-      },
-      children: [
         {
           path: 'label',
           name: 'label_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator', 'report_manage'],
+          },
           component: LabelReports,
         },
-      ],
-    },
-    {
-      path: frontendURL('accounts/:accountId/reports'),
-      component: SettingsContent,
-      props: {
-        headerTitle: 'INBOX_REPORTS.HEADER',
-        icon: 'mail-inbox-all',
-        keepAlive: false,
-      },
-      children: [
         {
           path: 'inboxes',
           name: 'inbox_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator', 'report_manage'],
+          },
           component: InboxReports,
         },
-      ],
-    },
-    {
-      path: frontendURL('accounts/:accountId/reports'),
-      component: SettingsContent,
-      props: {
-        headerTitle: 'TEAM_REPORTS.HEADER',
-        icon: 'people-team',
-      },
-      children: [
         {
           path: 'teams',
           name: 'team_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator', 'report_manage'],
+          },
           component: TeamReports,
+        },
+        {
+          path: 'sla',
+          name: 'sla_reports',
+          meta: {
+            permissions: ['administrator', 'report_manage'],
+            featureFlag: FEATURE_FLAGS.SLA,
+          },
+          component: SLAReports,
+        },
+        {
+          path: 'csat',
+          name: 'csat_reports',
+          meta: {
+            permissions: ['administrator', 'report_manage'],
+          },
+          component: CsatResponses,
+        },
+        {
+          path: 'bot',
+          name: 'bot_reports',
+          meta: {
+            permissions: ['administrator', 'report_manage'],
+          },
+          component: BotReports,
         },
       ],
     },

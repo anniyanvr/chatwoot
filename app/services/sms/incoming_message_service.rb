@@ -6,7 +6,7 @@ class Sms::IncomingMessageService
   def perform
     set_contact
     set_conversation
-    @message = @conversation.messages.create(
+    @message = @conversation.messages.create!(
       content: params[:text],
       account_id: @inbox.account_id,
       inbox_id: @inbox.id,
@@ -37,7 +37,7 @@ class Sms::IncomingMessageService
   end
 
   def set_contact
-    contact_inbox = ::ContactBuilder.new(
+    contact_inbox = ::ContactInboxWithContactBuilder.new(
       source_id: params[:from],
       inbox: @inbox,
       contact_attributes: contact_attributes
@@ -57,7 +57,13 @@ class Sms::IncomingMessageService
   end
 
   def set_conversation
-    @conversation = @contact_inbox.conversations.first
+    # if lock to single conversation is disabled, we will create a new conversation if previous conversation is resolved
+    @conversation = if @inbox.lock_to_single_conversation
+                      @contact_inbox.conversations.last
+                    else
+                      @contact_inbox.conversations.where
+                                    .not(status: :resolved).last
+                    end
     return if @conversation
 
     @conversation = ::Conversation.create!(conversation_params)
@@ -87,7 +93,7 @@ class Sms::IncomingMessageService
         file_type: file_type(attachment_file.content_type),
         file: {
           io: attachment_file,
-          filename: attachment_file,
+          filename: attachment_file.original_filename,
           content_type: attachment_file.content_type
         }
       )

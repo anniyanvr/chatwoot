@@ -1,426 +1,175 @@
 require 'rails_helper'
+
 describe AutomationRuleListener do
   let(:listener) { described_class.instance }
   let!(:account) { create(:account) }
-  let(:inbox) { create(:inbox, account: account) }
-  let(:contact) { create(:contact, account: account, identifier: '123') }
-  let(:contact_inbox) { create(:contact_inbox, contact: contact, inbox: inbox) }
-  let(:conversation) { create(:conversation, contact_inbox: contact_inbox, inbox: inbox, account: account) }
-  let(:automation_rule) { create(:automation_rule, account: account, name: 'Test Automation Rule') }
-  let(:team) { create(:team, account: account) }
-  let(:user_1) { create(:user, role: 0) }
-  let(:user_2) { create(:user, role: 0) }
-  let!(:event) do
-    Events::Base.new('conversation_status_changed', Time.zone.now, { conversation: conversation })
-  end
+  let(:conversation) { create(:conversation, account: account) }
+  let(:conditions_filter_service) { double }
+  let(:condition_match) { double }
+  let(:action_service) { double }
 
   before do
-    create(:custom_attribute_definition,
-           attribute_key: 'customer_type',
-           account: account,
-           attribute_model: 'contact_attribute',
-           attribute_display_type: 'list',
-           attribute_values: %w[regular platinum gold])
-    create(:team_member, user: user_1, team: team)
-    create(:team_member, user: user_2, team: team)
-    create(:account_user, user: user_2, account: account)
-    create(:account_user, user: user_1, account: account)
-
-    conversation.resolved!
-    automation_rule.update!(actions:
-                                      [
-                                        {
-                                          'action_name' => 'send_email_to_team', 'action_params' => {
-                                            'message' => 'Please pay attention to this conversation, its from high priority customer',
-                                            'team_ids' => [team.id]
-                                          }
-                                        },
-                                        { 'action_name' => 'assign_team', 'action_params' => [team.id] },
-                                        { 'action_name' => 'add_label', 'action_params' => %w[support priority_customer] },
-                                        { 'action_name' => 'send_webhook_event', 'action_params' => ['https://www.example.com'] },
-                                        { 'action_name' => 'assign_best_agent', 'action_params' => [user_1.id] },
-                                        { 'action_name' => 'send_email_transcript', 'action_params' => 'new_agent@example.com' },
-                                        { 'action_name' => 'mute_conversation', 'action_params' => nil },
-                                        { 'action_name' => 'change_status', 'action_params' => ['snoozed'] },
-                                        { 'action_name' => 'send_message', 'action_params' => ['Send this message.'] },
-                                        { 'action_name' => 'send_attachments' }
-                                      ])
-    file = fixture_file_upload(Rails.root.join('spec/assets/avatar.png'), 'image/png')
-    automation_rule.files.attach(file)
-    automation_rule.save
+    allow(AutomationRules::ConditionsFilterService).to receive(:new).and_return(conditions_filter_service)
+    allow(conditions_filter_service).to receive(:perform).and_return(condition_match)
+    allow(AutomationRules::ActionService).to receive(:new).and_return(action_service)
+    allow(action_service).to receive(:perform)
   end
 
-  describe '#conversation_status_changed' do
-    context 'when rule matches' do
-      it 'triggers automation rule send webhook events' do
-        payload = conversation.webhook_data.merge(event: "automation_event: #{automation_rule.event_name}")
+  describe 'conversation_created' do
+    let!(:automation_rule) { create(:automation_rule, event_name: 'conversation_created', account: account) }
+    let(:event) do
+      Events::Base.new('conversation_created', Time.zone.now, { conversation: conversation,
+                                                                changed_attributes: { status: %w[nil Open] } })
+    end
 
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_creation)
-
-        expect(WebhookJob).to receive(:perform_later).with('https://www.example.com', payload).once
-
-        listener.conversation_status_changed(event)
+    context 'when matching rules are present' do
+      it 'calls AutomationRules::ActionService if conditions match' do
+        allow(condition_match).to receive(:present?).and_return(true)
+        listener.conversation_created(event)
+        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation)
       end
 
-      it 'triggers automation rule to assign team' do
-        expect(conversation.team_id).not_to eq(team.id)
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_creation)
-
-        listener.conversation_status_changed(event)
-
-        conversation.reload
-        expect(conversation.team_id).to eq(team.id)
+      it 'does not call AutomationRules::ActionService if conditions do not match' do
+        allow(condition_match).to receive(:present?).and_return(false)
+        listener.conversation_created(event)
+        expect(AutomationRules::ActionService).not_to have_received(:new).with(automation_rule, account, conversation)
       end
 
-      it 'triggers automation rule to add label' do
-        expect(conversation.labels).to eq([])
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_creation)
-
-        listener.conversation_status_changed(event)
-
-        conversation.reload
-
-        expect(conversation.labels.pluck(:name)).to contain_exactly('support', 'priority_customer')
+      it 'calls AutomationRules::ActionService for each rule when multiple rules are present' do
+        create(:automation_rule, event_name: 'conversation_created', account: account)
+        allow(condition_match).to receive(:present?).and_return(true)
+        listener.conversation_created(event)
+        expect(AutomationRules::ActionService).to have_received(:new).twice
       end
 
-      it 'triggers automation rule to assign best agents' do
-        expect(conversation.assignee).to be_nil
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_creation)
-
-        listener.conversation_status_changed(event)
-
-        conversation.reload
-
-        expect(conversation.assignee).to eq(user_1)
-      end
-
-      it 'triggers automation rule send message to the contacts' do
-        expect(conversation.messages).to be_empty
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_creation)
-
-        listener.conversation_status_changed(event)
-
-        conversation.reload
-
-        expect(conversation.messages.first.content).to eq('Send this message.')
-      end
-
-      it 'triggers automation rule changes status to snoozed' do
-        expect(conversation.status).to eq('resolved')
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_creation)
-
-        listener.conversation_status_changed(event)
-
-        conversation.reload
-
-        expect(conversation.status).to eq('snoozed')
-      end
-
-      it 'triggers automation rule send email transcript to the mentioned email' do
-        mailer = double
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_creation)
-
-        listener.conversation_status_changed(event)
-
-        conversation.reload
-
-        allow(mailer).to receive(:conversation_transcript)
-      end
-
-      it 'triggers automation rule send email to the team' do
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_creation)
-
-        listener.conversation_status_changed(event)
-      end
-
-      it 'triggers automation rule send attachments in messages' do
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_creation)
-
-        listener.conversation_status_changed(event)
-
-        conversation.reload
-
-        expect(conversation.messages.last.attachments.count).to eq(1)
+      it 'does not call AutomationRules::ActionService if performed by automation' do
+        event.data[:performed_by] = automation_rule
+        allow(condition_match).to receive(:present?).and_return(true)
+        listener.conversation_created(event)
+        expect(AutomationRules::ActionService).not_to have_received(:new).with(automation_rule, account, conversation)
       end
     end
   end
 
-  describe '#conversation_updated with contacts attributes' do
-    before do
-      conversation.contact.update!(custom_attributes: { customer_type: 'platinum', signed_in_at: '2022-01-19' },
-                                   additional_attributes: { 'company': 'Marvel' })
-
-      automation_rule.update!(
-        event_name: 'conversation_updated',
-        name: 'Call actions conversation updated',
-        description: 'Add labels, assign team after conversation updated',
-        conditions: [
-          {
-            attribute_key: 'company',
-            filter_operator: 'equal_to',
-            values: ['Marvel'],
-            query_operator: 'AND'
-          }.with_indifferent_access,
-          {
-            attribute_key: 'customer_type',
-            filter_operator: 'equal_to',
-            values: ['platinum'],
-            query_operator: nil
-          }.with_indifferent_access
-        ]
-      )
+  describe 'conversation_updated' do
+    let!(:automation_rule) { create(:automation_rule, event_name: 'conversation_updated', account: account) }
+    let(:event) do
+      Events::Base.new('conversation_updated', Time.zone.now, { conversation: conversation,
+                                                                changed_attributes: { status: %w[Resolved Open] } })
     end
 
-    let!(:event) do
-      Events::Base.new('conversation_updated', Time.zone.now, { conversation: conversation })
-    end
-
-    context 'when rule matches with additional_attributes and custom_attributes' do
-      it 'triggers automation rule to assign team' do
-        expect(conversation.team_id).not_to eq(team.id)
-
+    context 'when matching rules are present' do
+      it 'calls AutomationRules::ActionService if conditions match' do
+        allow(condition_match).to receive(:present?).and_return(true)
         listener.conversation_updated(event)
-
-        conversation.reload
-        expect(conversation.team_id).to eq(team.id)
+        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation)
       end
 
-      it 'triggers automation rule to add label and assign best agents' do
-        expect(conversation.labels).to eq([])
-        expect(conversation.assignee).to be_nil
-
+      it 'does not call AutomationRules::ActionService if conditions do not match' do
+        allow(condition_match).to receive(:present?).and_return(false)
         listener.conversation_updated(event)
-
-        conversation.reload
-        expect(conversation.labels.pluck(:name)).to contain_exactly('support', 'priority_customer')
-        expect(conversation.assignee).to eq(user_1)
+        expect(AutomationRules::ActionService).not_to have_received(:new).with(automation_rule, account, conversation)
       end
 
-      it 'triggers automation rule send email transcript to the mentioned email' do
-        mailer = double
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_updated)
-
+      it 'calls AutomationRules::ActionService for each rule when multiple rules are present' do
+        create(:automation_rule, event_name: 'conversation_updated', account: account)
+        allow(condition_match).to receive(:present?).and_return(true)
         listener.conversation_updated(event)
-
-        conversation.reload
-
-        allow(mailer).to receive(:conversation_transcript)
+        expect(AutomationRules::ActionService).to have_received(:new).twice
       end
 
-      it 'triggers automation rule send message to the contacts' do
-        expect(conversation.messages).to be_empty
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_updated)
-
+      it 'does not call AutomationRules::ActionService if performed by automation' do
+        event.data[:performed_by] = automation_rule
+        allow(condition_match).to receive(:present?).and_return(true)
         listener.conversation_updated(event)
-
-        conversation.reload
-
-        expect(conversation.messages.first.content).to eq('Send this message.')
-      end
-
-      it 'triggers automation_rule with contact standard attributes' do
-        automation_rule.update!(
-          conditions: [
-            {
-              attribute_key: 'email',
-              filter_operator: 'contains',
-              values: ['example.com'],
-              query_operator: 'AND'
-            }.with_indifferent_access,
-            {
-              attribute_key: 'customer_type',
-              filter_operator: 'equal_to',
-              values: ['platinum'],
-              query_operator: nil
-            }.with_indifferent_access
-          ]
-        )
-        expect(conversation.team_id).not_to eq(team.id)
-
-        listener.conversation_updated(event)
-
-        conversation.reload
-        expect(conversation.team_id).to eq(team.id)
+        expect(AutomationRules::ActionService).not_to have_received(:new).with(automation_rule, account, conversation)
       end
     end
   end
 
-  describe '#conversation_updated' do
-    before do
-      automation_rule.update!(
-        event_name: 'conversation_updated',
-        name: 'Call actions conversation updated',
-        description: 'Add labels, assign team after conversation updated'
-      )
+  describe 'conversation_opened' do
+    let!(:automation_rule) { create(:automation_rule, event_name: 'conversation_opened', account: account) }
+    let(:event) do
+      Events::Base.new('conversation_opened', Time.zone.now, { conversation: conversation,
+                                                               changed_attributes: { status: %w[Resolved Open] } })
     end
 
-    let!(:event) do
-      Events::Base.new('conversation_updated', Time.zone.now, { conversation: conversation })
-    end
-
-    context 'when rule matches' do
-      it 'triggers automation rule to assign team' do
-        expect(conversation.team_id).not_to eq(team.id)
-
-        automation_rule
-        listener.conversation_updated(event)
-
-        conversation.reload
-        expect(conversation.team_id).to eq(team.id)
+    context 'when matching rules are present' do
+      it 'calls AutomationRules::ActionService if conditions match' do
+        allow(condition_match).to receive(:present?).and_return(true)
+        listener.conversation_opened(event)
+        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation)
       end
 
-      it 'triggers automation rule to add label' do
-        expect(conversation.labels).to eq([])
-
-        automation_rule
-        listener.conversation_updated(event)
-
-        conversation.reload
-        expect(conversation.labels.pluck(:name)).to contain_exactly('support', 'priority_customer')
+      it 'does not call AutomationRules::ActionService if conditions do not match' do
+        allow(condition_match).to receive(:present?).and_return(false)
+        listener.conversation_opened(event)
+        expect(AutomationRules::ActionService).not_to have_received(:new).with(automation_rule, account, conversation)
       end
 
-      it 'triggers automation rule to assign best agents' do
-        expect(conversation.assignee).to be_nil
-
-        automation_rule
-        listener.conversation_updated(event)
-
-        conversation.reload
-
-        expect(conversation.assignee).to eq(user_1)
+      it 'calls AutomationRules::ActionService for each rule when multiple rules are present' do
+        create(:automation_rule, event_name: 'conversation_opened', account: account)
+        allow(condition_match).to receive(:present?).and_return(true)
+        listener.conversation_opened(event)
+        expect(AutomationRules::ActionService).to have_received(:new).twice
       end
 
-      it 'triggers automation rule send email transcript to the mentioned email' do
-        mailer = double
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_updated)
-
-        listener.conversation_updated(event)
-
-        conversation.reload
-
-        allow(mailer).to receive(:conversation_transcript)
-      end
-
-      it 'triggers automation rule send email to the team' do
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_updated)
-
-        listener.conversation_updated(event)
-      end
-
-      it 'triggers automation rule send message to the contacts' do
-        expect(conversation.messages).to be_empty
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:conversation_updated)
-
-        listener.conversation_updated(event)
-
-        conversation.reload
-
-        expect(conversation.messages.first.content).to eq('Send this message.')
+      it 'does not call AutomationRules::ActionService if performed by automation' do
+        event.data[:performed_by] = automation_rule
+        allow(condition_match).to receive(:present?).and_return(true)
+        listener.conversation_opened(event)
+        expect(AutomationRules::ActionService).not_to have_received(:new).with(automation_rule, account, conversation)
       end
     end
   end
 
-  describe '#message_created' do
-    before do
-      automation_rule.update!(
-        event_name: 'message_created',
-        name: 'Call actions message created',
-        description: 'Add labels, assign team after message created',
-        conditions: [{ 'values': ['incoming'], 'attribute_key': 'message_type', 'query_operator': nil, 'filter_operator': 'equal_to' }]
-      )
+  describe 'message_created' do
+    let!(:automation_rule) { create(:automation_rule, event_name: 'message_created', account: account) }
+    let!(:message) { create(:message, account: account, conversation: conversation) }
+    let(:event) do
+      Events::Base.new('message_created', Time.zone.now, { message: message,
+                                                           changed_attributes: { content: %w[nil Hi] } })
     end
 
-    let!(:message) { create(:message, account: account, conversation: conversation, message_type: 'incoming') }
-    let!(:event) do
-      Events::Base.new('message_created', Time.zone.now, { conversation: conversation, message: message })
-    end
-
-    context 'when rule matches' do
-      it 'triggers automation rule to assign team' do
-        expect(conversation.team_id).not_to eq(team.id)
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:message_created)
-
+    context 'when matching rules are present' do
+      it 'calls AutomationRules::ActionService if conditions match' do
+        allow(condition_match).to receive(:present?).and_return(true)
         listener.message_created(event)
-
-        conversation.reload
-        expect(conversation.team_id).to eq(team.id)
+        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation)
       end
 
-      it 'triggers automation rule to add label' do
-        expect(conversation.labels).to eq([])
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:message_created)
-
+      it 'does not call AutomationRules::ActionService if conditions do not match' do
+        allow(condition_match).to receive(:present?).and_return(false)
         listener.message_created(event)
-
-        conversation.reload
-        expect(conversation.labels.pluck(:name)).to contain_exactly('support', 'priority_customer')
+        expect(AutomationRules::ActionService).not_to have_received(:new).with(automation_rule, account, conversation)
       end
 
-      it 'triggers automation rule to assign best agent' do
-        expect(conversation.assignee).to be_nil
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:message_created)
-
+      it 'calls AutomationRules::ActionService for each rule when multiple rules are present' do
+        create(:automation_rule, event_name: 'message_created', account: account)
+        allow(condition_match).to receive(:present?).and_return(true)
         listener.message_created(event)
-
-        conversation.reload
-
-        expect(conversation.assignee).to eq(user_1)
+        expect(AutomationRules::ActionService).to have_received(:new).twice
       end
 
-      it 'triggers automation rule send email transcript to the mentioned email' do
-        mailer = double
-
-        automation_rule
-
-        expect(TeamNotifications::AutomationNotificationMailer).to receive(:message_created)
-
+      it 'does not call AutomationRules::ActionService if performed by automation' do
+        event.data[:performed_by] = automation_rule
+        allow(condition_match).to receive(:present?).and_return(true)
         listener.message_created(event)
+        expect(AutomationRules::ActionService).not_to have_received(:new).with(automation_rule, account, conversation)
+      end
 
-        conversation.reload
+      it 'does not call AutomationRules::ActionService if message is activity message' do
+        message.update!(message_type: 'activity')
+        allow(condition_match).to receive(:present?).and_return(true)
+        listener.message_created(event)
+        expect(AutomationRules::ActionService).not_to have_received(:new).with(automation_rule, account, conversation)
+      end
 
-        allow(mailer).to receive(:conversation_transcript)
+      it 'does not call AutomationRules::ActionService if conditions do not match based on content' do
+        message.update!(processed_message_content: 'hi', content: "hi\n\nhello")
+        allow(condition_match).to receive(:present?).and_return(false)
+        listener.message_created(event)
+        expect(AutomationRules::ActionService).not_to have_received(:new).with(automation_rule, account, conversation)
       end
     end
   end

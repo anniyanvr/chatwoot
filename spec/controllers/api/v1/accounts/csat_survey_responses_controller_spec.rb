@@ -30,7 +30,7 @@ RSpec.describe 'CSAT Survey Responses API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:success)
-        expect(JSON.parse(response.body).first['feedback_message']).to eq(csat_survey_response.feedback_message)
+        expect(response.parsed_body.first['feedback_message']).to eq(csat_survey_response.feedback_message)
       end
 
       it 'filters csat responses based on a date range' do
@@ -43,7 +43,7 @@ RSpec.describe 'CSAT Survey Responses API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:success)
-        response_data = JSON.parse(response.body)
+        response_data = response.parsed_body
         expect(response_data.pluck('id')).to include(csat_3_days_ago.id)
         expect(response_data.pluck('id')).not_to include(csat_10_days_ago.id)
       end
@@ -63,7 +63,7 @@ RSpec.describe 'CSAT Survey Responses API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:success)
-        response_data = JSON.parse(response.body)
+        response_data = response.parsed_body
         expect(response_data.size).to eq 2
       end
 
@@ -104,13 +104,16 @@ RSpec.describe 'CSAT Survey Responses API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:success)
-        response_data = JSON.parse(response.body)
+        response_data = response.parsed_body
         expect(response_data['total_count']).to eq 1
         expect(response_data['total_sent_messages_count']).to eq 0
         expect(response_data['ratings_count']).to eq({ '1' => 1 })
       end
 
       it 'filters csat metrics based on a date range' do
+        # clearing any existing csat responses
+        CsatSurveyResponse.destroy_all
+
         create(:csat_survey_response, account: account, created_at: 10.days.ago)
         create(:csat_survey_response, account: account, created_at: 3.days.ago)
 
@@ -120,7 +123,7 @@ RSpec.describe 'CSAT Survey Responses API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:success)
-        response_data = JSON.parse(response.body)
+        response_data = response.parsed_body
         expect(response_data['total_count']).to eq 1
         expect(response_data['total_sent_messages_count']).to eq 0
         expect(response_data['ratings_count']).to eq({ '1' => 1 })
@@ -141,10 +144,44 @@ RSpec.describe 'CSAT Survey Responses API', type: :request do
             as: :json
 
         expect(response).to have_http_status(:success)
-        response_data = JSON.parse(response.body)
+        response_data = response.parsed_body
         expect(response_data['total_count']).to eq 2
         expect(response_data['total_sent_messages_count']).to eq 0
         expect(response_data['ratings_count']).to eq({ '1' => 2 })
+      end
+    end
+  end
+
+  describe 'GET /api/v1/accounts/{account.id}/csat_survey_responses/download' do
+    context 'when it is an unauthenticated user' do
+      it 'returns unauthorized' do
+        get "/api/v1/accounts/#{account.id}/csat_survey_responses/download"
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'when it is an authenticated user' do
+      let(:params) { { since: 5.days.ago.to_time.to_i.to_s, until: Time.zone.tomorrow.to_time.to_i.to_s } }
+
+      it 'returns unauthorized for agents' do
+        get "/api/v1/accounts/#{account.id}/csat_survey_responses/download",
+            params: params,
+            headers: agent.create_new_auth_token
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it 'returns summary' do
+        get "/api/v1/accounts/#{account.id}/csat_survey_responses/download",
+            params: params,
+            headers: administrator.create_new_auth_token
+
+        expect(response).to have_http_status(:success)
+
+        content = CSV.parse(response.body)
+        # Check rating from CSAT Row
+        expect(content[1][1]).to eq '1'
+        expect(content.length).to eq 3
       end
     end
   end

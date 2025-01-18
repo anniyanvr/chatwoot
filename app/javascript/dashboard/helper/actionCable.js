@@ -1,6 +1,8 @@
 import AuthAPI from '../api/auth';
 import BaseActionCableConnector from '../../shared/helpers/BaseActionCableConnector';
-import { newMessageNotification } from 'shared/helpers/AudioNotificationHelper';
+import DashboardAudioNotificationHelper from './AudioAlerts/DashboardAudioNotificationHelper';
+import { BUS_EVENTS } from 'shared/constants/busEvents';
+import { emitter } from 'shared/helpers/mitt';
 
 class ActionCableConnector extends BaseActionCableConnector {
   constructor(app, pubsubToken) {
@@ -23,8 +25,23 @@ class ActionCableConnector extends BaseActionCableConnector {
       'contact.updated': this.onContactUpdate,
       'conversation.mentioned': this.onConversationMentioned,
       'notification.created': this.onNotificationCreated,
+      'notification.deleted': this.onNotificationDeleted,
+      'notification.updated': this.onNotificationUpdated,
+      'conversation.read': this.onConversationRead,
+      'conversation.updated': this.onConversationUpdated,
+      'account.cache_invalidated': this.onCacheInvalidate,
     };
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  onReconnect = () => {
+    emitter.emit(BUS_EVENTS.WEBSOCKET_RECONNECT);
+  };
+
+  // eslint-disable-next-line class-methods-use-this
+  onDisconnected = () => {
+    emitter.emit(BUS_EVENTS.WEBSOCKET_DISCONNECT);
+  };
 
   isAValidEvent = data => {
     return this.app.$store.getters.getCurrentAccountId === data.account_id;
@@ -64,16 +81,35 @@ class ActionCableConnector extends BaseActionCableConnector {
     this.fetchConversationStats();
   };
 
+  onConversationRead = data => {
+    this.app.$store.dispatch('updateConversation', data);
+  };
+
+  // eslint-disable-next-line class-methods-use-this
   onLogout = () => AuthAPI.logout();
 
   onMessageCreated = data => {
-    newMessageNotification(data);
+    const {
+      conversation: { last_activity_at: lastActivityAt },
+      conversation_id: conversationId,
+    } = data;
+    DashboardAudioNotificationHelper.onNewMessage(data);
     this.app.$store.dispatch('addMessage', data);
+    this.app.$store.dispatch('updateConversationLastActivity', {
+      lastActivityAt,
+      conversationId,
+    });
   };
 
+  // eslint-disable-next-line class-methods-use-this
   onReload = () => window.location.reload();
 
   onStatusChange = data => {
+    this.app.$store.dispatch('updateConversation', data);
+    this.fetchConversationStats();
+  };
+
+  onConversationUpdated = data => {
     this.app.$store.dispatch('updateConversation', data);
     this.fetchConversationStats();
   };
@@ -120,8 +156,9 @@ class ActionCableConnector extends BaseActionCableConnector {
     }, 30000);
   };
 
+  // eslint-disable-next-line class-methods-use-this
   fetchConversationStats = () => {
-    bus.$emit('fetch_conversation_stats');
+    emitter.emit('fetch_conversation_stats');
   };
 
   onContactDelete = data => {
@@ -139,17 +176,25 @@ class ActionCableConnector extends BaseActionCableConnector {
   onNotificationCreated = data => {
     this.app.$store.dispatch('notifications/addNotification', data);
   };
+
+  onNotificationDeleted = data => {
+    this.app.$store.dispatch('notifications/deleteNotification', data);
+  };
+
+  onNotificationUpdated = data => {
+    this.app.$store.dispatch('notifications/updateNotification', data);
+  };
+
+  onCacheInvalidate = data => {
+    const keys = data.cache_keys;
+    this.app.$store.dispatch('labels/revalidate', { newKey: keys.label });
+    this.app.$store.dispatch('inboxes/revalidate', { newKey: keys.inbox });
+    this.app.$store.dispatch('teams/revalidate', { newKey: keys.team });
+  };
 }
 
 export default {
-  init() {
-    if (AuthAPI.isLoggedIn()) {
-      const actionCable = new ActionCableConnector(
-        window.WOOT,
-        AuthAPI.getPubSubToken()
-      );
-      return actionCable;
-    }
-    return null;
+  init(store, pubsubToken) {
+    return new ActionCableConnector({ $store: store }, pubsubToken);
   },
 };

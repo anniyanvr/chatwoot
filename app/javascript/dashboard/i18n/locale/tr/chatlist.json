@@ -6,39 +6,19 @@
     "LIST": {
       "404": "Bu grupta aktif görüşme yok."
     },
+    "FAILED_TO_SEND": "Failed to send",
     "TAB_HEADING": "Konuşmalar",
     "MENTION_HEADING": "Bahsedilmeler",
+    "UNATTENDED_HEADING": "İlgilenilmemiş",
     "SEARCH": {
       "INPUT": "Kişileri, Sohbetleri, Kaydedilen Yanıtları Ara .."
     },
     "FILTER_ALL": "Hepsi",
-    "STATUS_TABS": [
-      {
-        "NAME": "Açık",
-        "KEY": "openCount"
-      },
-      {
-        "NAME": "Çözüldü",
-        "KEY": "allConvCount"
-      }
-    ],
-    "ASSIGNEE_TYPE_TABS": [
-      {
-        "NAME": "Benim",
-        "KEY": "me",
-        "COUNT_KEY": "mineCount"
-      },
-      {
-        "NAME": "Atanmamış",
-        "KEY": "unassigned",
-        "COUNT_KEY": "unAssignedCount"
-      },
-      {
-        "NAME": "Hepsi",
-        "KEY": "all",
-        "COUNT_KEY": "allCount"
-      }
-    ],
+    "ASSIGNEE_TYPE_TABS": {
+      "me": "Benim",
+      "unassigned": "Atanmamış",
+      "all": "Hepsi"
+    },
     "CHAT_STATUS_FILTER_ITEMS": {
       "open": {
         "TEXT": "Açık"
@@ -51,6 +31,51 @@
       },
       "snoozed": {
         "TEXT": "Susturuldu"
+      },
+      "all": {
+        "TEXT": "Hepsi"
+      }
+    },
+    "VIEW_FILTER": "Görünüm",
+    "SORT_TOOLTIP_LABEL": "Görüşmeleri sırala",
+    "CHAT_SORT": {
+      "STATUS": "Durum",
+      "ORDER_BY": "Sırala"
+    },
+    "CHAT_TIME_STAMP": {
+      "CREATED": {
+        "LATEST": "Oluşturuldu",
+        "OLDEST": "Oluşturma zamanı:"
+      },
+      "LAST_ACTIVITY": {
+        "NOT_ACTIVE": "Son etkinlik:",
+        "ACTIVE": "Son etkinlik"
+      }
+    },
+    "SORT_ORDER_ITEMS": {
+      "last_activity_at_asc": {
+        "TEXT": "Son aktivite: En eski"
+      },
+      "last_activity_at_desc": {
+        "TEXT": "Son Aktivite: En Yeni"
+      },
+      "created_at_desc": {
+        "TEXT": "Oluşturulma: En Yeni"
+      },
+      "created_at_asc": {
+        "TEXT": "Oluşturulma: En Eski"
+      },
+      "priority_desc": {
+        "TEXT": "Öncelik: Yüksek"
+      },
+      "priority_asc": {
+        "TEXT": "Öncelik: Düşük"
+      },
+      "waiting_since_asc": {
+        "TEXT": "Cevap Bekleyen: Uzun olan"
+      },
+      "waiting_since_desc": {
+        "TEXT": "Cevap Bekleyen: Kısa olan"
       }
     },
     "ATTACHMENTS": {
@@ -69,8 +94,29 @@
       "location": {
         "CONTENT": "Yer"
       },
+      "ig_reel": {
+        "CONTENT": "Instagram Reel"
+      },
       "fallback": {
         "CONTENT": "bir url paylaştı"
+      }
+    },
+    "CHAT_SORT_BY_FILTER": {
+      "TITLE": "Görüşmeleri sırala",
+      "DROPDOWN_TITLE": "Sırala",
+      "ITEMS": {
+        "LATEST": {
+          "NAME": "Son etkinlik",
+          "LABEL": "Son etkinlik"
+        },
+        "CREATED_AT": {
+          "NAME": "Oluşturma zamanı",
+          "LABEL": "Oluşturma zamanı"
+        },
+        "LAST_USER_MESSAGE_AT": {
+          "NAME": "Son kullanıcı mesajı",
+          "LABEL": "Son mesaj"
+        }
       }
     },
     "RECEIVED_VIA_EMAIL": "E-posta ile alındı",
@@ -78,9 +124,13 @@
     "REPLY_TO_TWEET": "Bu tweet'i yanıtla",
     "LINK_TO_STORY": "Instagram hikayesine git",
     "SENT": "Başarıyla gönderildi",
+    "READ": "Başarıyla okundu",
+    "DELIVERED": "Başarıyla teslim edildi",
     "NO_MESSAGES": "Mesaj yok",
     "NO_CONTENT": "Kullanılabilir içerik yok",
     "HIDE_QUOTED_TEXT": "Alıntı Yapılan Mesajı Gizle",
-    "SHOW_QUOTED_TEXT": "Alıntı Yapılan Mesajı Göster"
+    "SHOW_QUOTED_TEXT": "Alıntı Yapılan Mesajı Göster",
+    "MESSAGE_READ": "Oku",
+    "SENDING": "Sending"
   }
 }

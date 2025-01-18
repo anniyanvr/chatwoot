@@ -1,4 +1,5 @@
 class SupportMailbox < ApplicationMailbox
+  include IncomingEmailValidityHelper
   attr_accessor :channel, :account, :inbox, :conversation, :processed_mail
 
   before_processing :find_channel,
@@ -7,8 +8,10 @@ class SupportMailbox < ApplicationMailbox
                     :decorate_mail
 
   def process
-    # prevent loop from chatwoot notification emails
-    return if notification_email_from_chatwoot?
+    Rails.logger.info "Processing email #{mail.message_id} from #{original_sender_email} to #{mail.to} with subject #{mail.subject}"
+
+    # Skip processing email if it belongs to any of the edge cases
+    return unless incoming_email_from_valid_email?
 
     ActiveRecord::Base.transaction do
       find_or_create_contact
@@ -21,13 +24,15 @@ class SupportMailbox < ApplicationMailbox
   private
 
   def find_channel
-    mail.to.each do |email|
-      @channel = Channel::Email.find_by('lower(email) = ? OR lower(forward_to_email) = ?', email.downcase, email.downcase)
-      break if @channel.present?
-    end
+    find_channel_with_to_mail if @channel.blank?
+
     raise 'Email channel/inbox not found' if @channel.nil?
 
     @channel
+  end
+
+  def find_channel_with_to_mail
+    @channel = EmailChannelFinder.new(mail).perform
   end
 
   def load_account
@@ -52,6 +57,10 @@ class SupportMailbox < ApplicationMailbox
     mail['In-Reply-To'].try(:value)
   end
 
+  def original_sender_email
+    @processed_mail.original_sender&.downcase
+  end
+
   def find_or_create_conversation
     @conversation = find_conversation_by_in_reply_to || ::Conversation.create!({
                                                                                  account_id: @account.id,
@@ -70,7 +79,7 @@ class SupportMailbox < ApplicationMailbox
   end
 
   def find_or_create_contact
-    @contact = @inbox.contacts.find_by(email: @processed_mail.original_sender)
+    @contact = @inbox.contacts.from_email(original_sender_email)
     if @contact.present?
       @contact_inbox = ContactInbox.find_by(inbox: @inbox, contact: @contact)
     else

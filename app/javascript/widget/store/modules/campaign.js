@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { getCampaigns, triggerCampaign } from 'widget/api/campaign';
 import campaignTimer from 'widget/helpers/campaignTimer';
 import {
@@ -92,14 +91,17 @@ export const actions = {
     }
   },
 
-  executeCampaign: async ({ commit }, { campaignId, websiteToken }) => {
+  executeCampaign: async (
+    { commit },
+    { campaignId, websiteToken, customAttributes }
+  ) => {
     try {
       commit(
         'conversation/setConversationUIFlag',
         { isCreating: true },
         { root: true }
       );
-      await triggerCampaign({ campaignId, websiteToken });
+      await triggerCampaign({ campaignId, websiteToken, customAttributes });
       commit('setCampaignExecuted', true);
       commit('setActiveCampaign', {});
     } catch (error) {
@@ -124,19 +126,19 @@ export const actions = {
 
 export const mutations = {
   setCampaigns($state, data) {
-    Vue.set($state, 'records', data);
+    $state.records = data;
   },
   setActiveCampaign($state, data) {
-    Vue.set($state, 'activeCampaign', data);
+    $state.activeCampaign = data;
   },
   setError($state, value) {
-    Vue.set($state.uiFlags, 'isError', value);
+    $state.uiFlags.isError = value;
   },
   setHasFetched($state, value) {
-    Vue.set($state.uiFlags, 'hasFetched', value);
+    $state.uiFlags.hasFetched = value;
   },
   setCampaignExecuted($state, data) {
-    Vue.set($state, 'campaignHasExecuted', data);
+    $state.campaignHasExecuted = data;
   },
 };
 

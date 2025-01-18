@@ -1,75 +1,76 @@
 {
   "CANNED_MGMT": {
-    "HEADER": "Gotovi odgovori",
-    "HEADER_BTN_TXT": "Dodaj gotov odgovor",
-    "LOADING": "Preuzimanje gotovih odgovara",
-    "SEARCH_404": "Nema razultata",
-    "SIDEBAR_TXT": "<p><b>Canned Responses</b> </p><p> Canned Responses are saved reply templates which can be used to quickly send out a reply to a conversation. </p><p> For creating a Canned Response, just click on the <b>Add Canned Response</b>. You can also edit or delete an existing Canned Response by clicking on the Edit or Delete button </p><p> Canned responses are used with the help of <b>Short Codes</b>. Agents can access canned responses while on a chat by typing <b>'/'</b> followed by the short code. </p>",
+    "HEADER": "Brzi odgovori",
+    "LEARN_MORE": "Learn more about canned responses",
+    "DESCRIPTION": "Canned Responses are pre-written reply templates that help you quickly respond to a conversation. Agents can type the '/' character followed by the shortcode to insert a canned response during a conversation. ",
+    "HEADER_BTN_TXT": "Add canned response",
+    "LOADING": "Fetching canned responses...",
+    "SEARCH_404": "Nema stavki koje se poklapaju sa upitom.",
     "LIST": {
-      "404": "Ne postoje gotovi odgovori u ovom nalogu.",
-      "TITLE": "Upravljajte gotovim odgovorima",
-      "DESC": "Canned Responses are predefined reply templates which can be used to quickly send out replies to tickets.",
-      "TABLE_HEADER": [
-        "Brzi kod",
-        "Sadržaj",
-        "Akcije"
-      ]
+      "404": "Ne postoje brzi odgovori u ovom nalogu.",
+      "TITLE": "Upravljajte brzim odgovorima",
+      "DESC": "Canned Responses are predefined reply templates which can be used to quickly send out replies to conversations.",
+      "TABLE_HEADER": {
+        "SHORT_CODE": "Short code",
+        "CONTENT": "Sadržaj",
+        "ACTIONS": "Akcije"
+      }
     },
     "ADD": {
-      "TITLE": "Dodaj gotov odgovor",
-      "DESC": "Canned Responses are saved reply templates which can be used to quickly send out reply to conversation.",
+      "TITLE": "Add canned response",
+      "DESC": "Canned Responses are predefined reply templates which can be used to quickly send out replies to conversations.",
       "CANCEL_BUTTON_TEXT": "Otkaži",
       "FORM": {
         "SHORT_CODE": {
-          "LABEL": "Brzi kod",
-          "PLACEHOLDER": "Unesite brzi kod",
-          "ERROR": "Brzi kod je obavezan"
+          "LABEL": "Short code",
+          "PLACEHOLDER": "Please enter a short code.",
+          "ERROR": "Short Code is required."
         },
         "CONTENT": {
-          "LABEL": "Sadržaj",
-          "PLACEHOLDER": "Unesite sadržaj",
-          "ERROR": "Sadržaj je obavezan"
+          "LABEL": "Poruka",
+          "PLACEHOLDER": "Please write the message you want to save as a template to use later.",
+          "ERROR": "Message is required."
         },
         "SUBMIT": "Pošalji"
       },
       "API": {
-        "SUCCESS_MESSAGE": "Gotov odgovor je uspešno dodat",
-        "ERROR_MESSAGE": "Nije moguće se povezati sa Woot serverom, pokušajte ponovo kasnije"
+        "SUCCESS_MESSAGE": "Canned response added successfully.",
+        "ERROR_MESSAGE": "Could not connect to Woot server. Please try again."
       }
     },
     "EDIT": {
-      "TITLE": "Uredi gotov odgovor",
+      "TITLE": "Edit canned response",
       "CANCEL_BUTTON_TEXT": "Otkaži",
       "FORM": {
         "SHORT_CODE": {
-          "LABEL": "Brzi kod",
-          "PLACEHOLDER": "Unesite brzi kod",
-          "ERROR": "Brzi kod je obavezan"
+          "LABEL": "Short code",
+          "PLACEHOLDER": "Please enter a shortcode.",
+          "ERROR": "Short code is required."
         },
         "CONTENT": {
-          "LABEL": "Sadržaj",
-          "PLACEHOLDER": "Unesite sadržaj",
-          "ERROR": "Sadržaj je obavezan"
+          "LABEL": "Poruka",
+          "PLACEHOLDER": "Please write the message you want to save as a template to use later.",
+          "ERROR": "Poruka je obavezna."
         },
         "SUBMIT": "Pošalji"
       },
       "BUTTON_TEXT": "Uredi",
       "API": {
-        "SUCCESS_MESSAGE": "Canned Response updated successfully",
-        "ERROR_MESSAGE": "Nije moguće se povezati sa Woot serverom, pokušajte ponovo kasnije"
+        "SUCCESS_MESSAGE": "Canned response is updated successfully.",
+        "ERROR_MESSAGE": "Could not connect to Woot server. Please try again."
       }
     },
     "DELETE": {
-      "BUTTON_TEXT": "Izbriši",
+      "BUTTON_TEXT": "Obriši",
       "API": {
-        "SUCCESS_MESSAGE": "Gotov odgovor je uspešno izbrisan",
-        "ERROR_MESSAGE": "Nije moguće se povezati sa Woot serverom, pokušajte ponovo kasnije"
+        "SUCCESS_MESSAGE": "Canned response deleted successfully.",
+        "ERROR_MESSAGE": "Could not connect to Woot server. Please try again."
       },
       "CONFIRM": {
-        "TITLE": "Potvrdite brisanje",
+        "TITLE": "Potvrdi brisanje",
         "MESSAGE": "Sigurni ste da želite izbrisati ",
-        "YES": "Da, izbriši ",
-        "NO": "Ne, zadrži "
+        "YES": "Yes, delete ",
+        "NO": "No, keep "
       }
     }
   }

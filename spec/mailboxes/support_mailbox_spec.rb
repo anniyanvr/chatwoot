@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe SupportMailbox, type: :mailbox do
+RSpec.describe SupportMailbox do
   include ActionMailbox::TestHelper
 
   describe 'when a chatwoot notification email is received' do
@@ -12,7 +12,38 @@ RSpec.describe SupportMailbox, type: :mailbox do
 
     it 'shouldnt create a conversation in the channel' do
       described_subject
-      expect(conversation.present?).to eq(false)
+      expect(conversation.present?).to be(false)
+    end
+  end
+
+  describe 'when bounced email with out a sender is recieved' do
+    let(:account) { create(:account) }
+    let(:bounced_email) { create_inbound_email_from_fixture('bounced_with_no_from.eml') }
+    let(:described_subject) { described_class.receive bounced_email }
+
+    it 'shouldnt throw an error' do
+      create(:channel_email, email: 'support@example.com', account: account)
+      expect { described_subject }.not_to raise_error
+    end
+  end
+
+  describe 'when an account is suspended' do
+    let(:account) { create(:account, status: :suspended) }
+    let(:agent) { create(:user, email: 'agent1@example.com', account: account) }
+    let!(:channel_email) { create(:channel_email, account: account) }
+    let(:support_mail) { create_inbound_email_from_fixture('support.eml') }
+    let(:described_subject) { described_class.receive support_mail }
+    let(:conversation) { Conversation.where(inbox_id: channel_email.inbox).last }
+
+    before do
+      # this email is hardcoded in the support.eml, that's why we are updating this
+      channel_email.email = 'care@example.com'
+      channel_email.save!
+    end
+
+    it 'shouldnt create a conversation in the channel' do
+      described_subject
+      expect(conversation.present?).to be(false)
     end
   end
 
@@ -21,6 +52,7 @@ RSpec.describe SupportMailbox, type: :mailbox do
     let(:agent) { create(:user, email: 'agent1@example.com', account: account) }
     let!(:channel_email) { create(:channel_email, account: account) }
     let(:support_mail) { create_inbound_email_from_fixture('support.eml') }
+    let(:support_in_reply_to_mail) { create_inbound_email_from_fixture('support_in_reply_to.eml') }
     let(:described_subject) { described_class.receive support_mail }
     let(:serialized_attributes) do
       %w[bcc cc content_type date from html_content in_reply_to message_id multipart number_of_attachments subject
@@ -31,7 +63,18 @@ RSpec.describe SupportMailbox, type: :mailbox do
     before do
       # this email is hardcoded in the support.eml, that's why we are updating this
       channel_email.email = 'care@example.com'
-      channel_email.save
+      channel_email.save!
+    end
+
+    describe 'covers email address format' do
+      before do
+        described_class.receive support_in_reply_to_mail
+      end
+
+      it 'creates contact with proper email address' do
+        expect(support_in_reply_to_mail.mail['reply_to'].try(:value)).to eq('Sony Mathew <sony@chatwoot.com>')
+        expect(conversation.contact.email).to eq('sony@chatwoot.com')
+      end
     end
 
     describe 'covers basic ticket creation' do
@@ -91,14 +134,35 @@ RSpec.describe SupportMailbox, type: :mailbox do
     end
 
     describe 'handle inbox contacts' do
-      let(:contact) { create(:contact, account: account, email: support_mail.mail.from.first) }
-      let(:contact_inbox) { create(:contact_inbox, inbox: channel_email.inbox, contact: contact) }
+      let!(:contact) { create(:contact, account: account, email: support_mail.mail.from.first) }
+      let!(:contact_inbox) { create(:contact_inbox, inbox: channel_email.inbox, contact: contact) }
 
       it 'does not create new contact if that contact exists in the inbox' do
-        # making sure we have a contact already present
-        expect(contact_inbox.contact.email).to eq(support_mail.mail.from.first)
-        described_subject
+        expect do
+          described_subject
+        end
+          .to(not_change { Contact.count }
+            .and(not_change { ContactInbox.count }))
+
         expect(conversation.messages.last.sender.id).to eq(contact.id)
+        expect(conversation.contact_inbox).to eq(contact_inbox)
+      end
+
+      context 'with uppercase reply-to' do
+        let(:support_mail) { create_inbound_email_from_fixture('support_uppercase.eml') }
+        let!(:contact) { create(:contact, account: account, email: support_mail.mail.from.first) }
+        let!(:contact_inbox) { create(:contact_inbox, inbox: channel_email.inbox, contact: contact) }
+
+        it 'does not create new contact if that contact exists in the inbox' do
+          expect do
+            described_subject
+          end
+            .to(not_change { Contact.count }
+              .and(not_change { ContactInbox.count }))
+
+          expect(conversation.messages.last.sender.id).to eq(contact.id)
+          expect(conversation.contact_inbox).to eq(contact_inbox)
+        end
       end
     end
 
@@ -109,7 +173,7 @@ RSpec.describe SupportMailbox, type: :mailbox do
       before do
         # this email is hardcoded eml fixture file that's why we are updating this
         channel_email.email = 'support@chatwoot.com'
-        channel_email.save
+        channel_email.save!
       end
 
       it 'create new contact with original sender' do
@@ -148,6 +212,7 @@ RSpec.describe SupportMailbox, type: :mailbox do
         expect(conversation_1.messages.count).to eq(1)
 
         reply_mail_without_uuid.mail['In-Reply-To'] = 'conversation/6bdc3f4d-0bec-4515-a284-5d916fdde489/messages/123'
+        reply_mail_without_uuid.mail['Message-Id'] = '0CB459E0-0336-41DA-BC88-E6E28C697SFC@chatwoot.com'
 
         described_class.receive reply_mail_without_uuid
 
@@ -189,8 +254,9 @@ RSpec.describe SupportMailbox, type: :mailbox do
         expect(conversation.inbox.id).to eq(channel_email.inbox.id)
 
         expect(conversation.messages.last.content_attributes['email']['html_content']['reply']).to include(
-          <<-BODY.strip_heredoc.chomp
+          <<~BODY.chomp
             Hi,
+
             We are providing you platform from here you can sell paid posts on your website.
 
             Chatwoot | CS team | [C](https://d33wubrfki0l68.cloudfront.net/973467c532160fd8b940300a43fa85fa2d060307/dc9a0/static/brand-73f58cdefae282ae74cebfa74c1d7003.svg)
@@ -218,8 +284,8 @@ RSpec.describe SupportMailbox, type: :mailbox do
         expect(conversation.inbox.id).to eq(channel_email.inbox.id)
 
         expect(conversation.messages.last.content).to eq(
-          <<-BODY.strip_heredoc.chomp
-          This is html only mail
+          <<~BODY.chomp
+            This is html only mail
           BODY
         )
         expect(conversation.messages.last.content_attributes['email']['subject']).to eq('test html only mail')
@@ -230,7 +296,7 @@ RSpec.describe SupportMailbox, type: :mailbox do
 
         expect(conversation.inbox.id).to eq(channel_email.inbox.id)
 
-        expect(conversation.messages.last.content).to eq(nil)
+        expect(conversation.messages.last.content).to be_nil
         expect(conversation.messages.last.attachments.count).to eq(1)
         expect(conversation.messages.last.content_attributes['email']['subject']).to eq('only attachments')
       end

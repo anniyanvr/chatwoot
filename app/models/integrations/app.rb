@@ -28,16 +28,18 @@ class Integrations::App
   def action
     case params[:id]
     when 'slack'
-      "#{params[:action]}&client_id=#{ENV['SLACK_CLIENT_ID']}&redirect_uri=#{self.class.slack_integration_url}"
+      "#{params[:action]}&client_id=#{ENV.fetch('SLACK_CLIENT_ID', nil)}&redirect_uri=#{self.class.slack_integration_url}"
     else
       params[:action]
     end
   end
 
-  def active?
+  def active?(account)
     case params[:id]
     when 'slack'
       ENV['SLACK_CLIENT_SECRET'].present?
+    when 'linear'
+      account.feature_enabled?('linear_integration')
     else
       true
     end
@@ -45,10 +47,12 @@ class Integrations::App
 
   def enabled?(account)
     case params[:id]
-    when 'slack'
-      account.hooks.exists?(app_id: id)
+    when 'webhook'
+      account.webhooks.exists?
+    when 'dashboard_apps'
+      account.dashboard_apps.exists?
     else
-      true
+      account.hooks.exists?(app_id: id)
     end
   end
 
@@ -57,7 +61,7 @@ class Integrations::App
   end
 
   def self.slack_integration_url
-    "#{ENV['FRONTEND_URL']}/app/accounts/#{Current.account.id}/settings/integrations/slack"
+    "#{ENV.fetch('FRONTEND_URL', nil)}/app/accounts/#{Current.account.id}/settings/integrations/slack"
   end
 
   class << self
